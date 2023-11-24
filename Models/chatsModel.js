@@ -11,10 +11,6 @@ const chatSchema = new mongoose.Schema({
         type: type.Schema.Types.ObjectID,
         ref: "userModel" 
         },
-    timestamp: {
-        type: Date,
-        default: Date.now 
-        },
     message:{
         type: String,
         minLength:1
@@ -22,7 +18,12 @@ const chatSchema = new mongoose.Schema({
 
 
 
+}
+,
+{
+    timestamps:true
+
 })
 
-module.exports = mongoose.model('Chat',chatSchema);
+module.exports = mongoose.model('Chats',chatSchema);
 module.exports.Schema = chatSchema

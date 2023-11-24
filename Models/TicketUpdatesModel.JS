@@ -31,5 +31,5 @@ const TicketUpdatesSchema = new mongoose.Schema(
         timestamps: true,
       }
 );
-module.exports = mongoose.model('TicketUpdatesModel',TicketUpdatesSchema);
-module.exports.Schema = TicketUpdates
+module.exports = mongoose.model('TicketUpdates',TicketUpdatesSchema);
+module.exports.Schema = TicketUpdatesSchema

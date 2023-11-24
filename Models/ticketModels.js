@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
-const ticketSchema = new mongoose.Schema({
+const ticketSchema = new mongoose.Schema(
+  {
   createdBy: {
     type: type.Schema.Types.ObjectID,
     ref: "User",
@@ -39,10 +40,6 @@ const ticketSchema = new mongoose.Schema({
     type: String,
     enum: ["Open", "Closed", "In Progress", "Resolved"],
   },
-  timestamp: {
-    type: Date,
-    default: Date.now,
-  },
   title: {
     type: String,
     required: true,
@@ -57,7 +54,11 @@ const ticketSchema = new mongoose.Schema({
     max: 10,
     default: null, // You can set a default value if needed
   },
+},
+
+{
+  timestamps: true,
 });
 
-module.exports = mongoose.model('Ticket',ticketSchema);
-module.exports.Schema = Ticket
+module.exports = mongoose.model('Tickets',ticketSchema);
+module.exports.Schema = ticketSchema

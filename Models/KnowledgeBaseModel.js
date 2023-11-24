@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const TicketUpdatesSchema = new mongoose.Schema(
+const knowledgeBasedSchema = new mongoose.Schema(
 
     {
 
@@ -46,5 +46,5 @@ const TicketUpdatesSchema = new mongoose.Schema(
       }
 )
 
-module.exports = mongoose.model('TicketUpdatesModel',TicketUpdatesSchema);
-module.exports.Schema = TicketUpdates
+module.exports = mongoose.model('KnowledgeBase',knowledgeBasedSchema);
+module.exports.Schema = knowledgeBasedSchema  

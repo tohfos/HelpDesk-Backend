@@ -48,8 +48,8 @@ const userSchema = new mongoose.Schema(
 
 
 {
-    
-
+    strict:true,
+    timestamps:true,
 } // define options
 
 
@@ -69,9 +69,9 @@ const userSchema = new mongoose.Schema(
 
 );
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('Users', userSchema);
 
-module.exports = User;
+module.exports.Schema = userSchema;
 
 
 

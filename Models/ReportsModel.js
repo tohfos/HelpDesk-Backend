@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const userModel = require("./usersModel.j")
+const userModel = require("./usersModel")
 
 const ReportSchema = new mongoose.Schema(
     
@@ -11,14 +11,6 @@ const ReportSchema = new mongoose.Schema(
                 minLength: 3,
                 maxLength: 500,
             },
-
-            Timestamp:{
-
-                type: Date,
-                default: Date.now,
-
-            }
-            ,
             user: { 
                 type: mongoose.Schema.Types.ObjectId, 
                 ref: 'User', 
@@ -37,7 +29,7 @@ const ReportSchema = new mongoose.Schema(
 
 );
 
-module.exports = mongoose.model('ReportsModel',ReportSchema);
+module.exports = mongoose.model('Reports',ReportSchema);
 module.exports.Schema = ReportSchema
 
 

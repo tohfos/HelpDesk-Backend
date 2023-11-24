@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const userModel = require("./usersModel.j")
+const userModel = require("./usersModel")
 
 const SecuritySchema = new mongoose.Schema(
 
@@ -46,7 +46,7 @@ const SecuritySchema = new mongoose.Schema(
 
 );
 
-module.exports = mongoose.model('SecurityModel',SecuritySchema);
+module.exports = mongoose.model('Security',SecuritySchema);
 module.exports.Schema = SecuritySchema;
 
 

@@ -25,9 +25,8 @@ const logsSchema = new mongoose.Schema(
 
 );
 
-module.exports = mongoose.model('logsModel',logsSchema);
+module.exports = mongoose.model('Logs',logsSchema);
 module.exports.Schema = logsSchema
-
 
 
 
