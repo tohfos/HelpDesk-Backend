@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const userModel = require("./usersModel.j")
 
 const SecuritySchema = new mongoose.Schema(
+
     
         
         {
@@ -46,7 +47,7 @@ const SecuritySchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('SecurityModel',SecuritySchema);
-module.exports.Schema = SecuritySchema
+module.exports.Schema = SecuritySchema;
 
 
 
