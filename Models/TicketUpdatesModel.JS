@@ -1,6 +1,6 @@
 const mongoose = require("mongoose")
-const TicketsModel= require("./TicketsModel");
 const usersModel = require("./usersModel");
+const TicketsModel= require("./TicketsModel");
 
 const TicketUpdatesSchema = new mongoose.Schema(
 
@@ -32,4 +32,4 @@ const TicketUpdatesSchema = new mongoose.Schema(
       }
 );
 module.exports = mongoose.model('TicketUpdatesModel',TicketUpdatesSchema);
-module.exports.Schema = TicketUpdatesSchema
+module.exports.Schema = TicketUpdates
