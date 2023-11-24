@@ -18,11 +18,11 @@ const chatSchema = new mongoose.Schema({
     message:{
         type: String,
         minLength:1
-    } 
+    }
 
 
 
 })
 
 module.exports = mongoose.model('Chat',chatSchema);
-module.exports.Schema = Chat
+module.exports.Schema = chatSchema
