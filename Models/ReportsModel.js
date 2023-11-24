@@ -1,29 +1,21 @@
 const mongoose = require('mongoose');
 const userModel = require("./usersModel.j")
 
-const SecuritySchema = new mongoose.Schema(
+const ReportSchema = new mongoose.Schema(
     
         
         {
 
-            EncryptionKey : { // low , medium , high
+            ReportDetails : { 
                 type: String,
                 minLength: 3,
                 maxLength: 500,
             },
 
-            DataProtectionDetails:{
+            Timestamp:{
 
-                type: String,
-                required: true,
-
-            }
-            ,
-
-            BackupRecoveryDetails :{
-
-                type: String,
-                required: true,
+                type: Date,
+                default: Date.now,
 
             }
             ,
@@ -40,13 +32,13 @@ const SecuritySchema = new mongoose.Schema(
         {
 
             strict: true,
-            timestamps:true
+            timestamps:true,
         }
 
 );
 
-module.exports = mongoose.model('SecurityModel',SecuritySchema);
-module.exports.Schema = SecuritySchema
+module.exports = mongoose.model('ReportsModel',ReportSchema);
+module.exports.Schema = ReportSchema
 
 
 
