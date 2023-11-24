@@ -23,7 +23,10 @@ const logsSchema = new mongoose.Schema(
             timestamps:true,
         }
 
+);
 
+module.exports = mongoose.model('logsModel',logsSchema);
+module.exports.Schema = logsSchema
 
 
 
