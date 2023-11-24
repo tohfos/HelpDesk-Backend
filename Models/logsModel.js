@@ -32,15 +32,3 @@ module.exports.Schema = logsSchema
 
 
 
-
-
-
-
-    
-
-
-
-
-
-
-);
