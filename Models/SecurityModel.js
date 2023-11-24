@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const logsSchema = new mongoose.Schema(
+const securitySchema = new mongoose.Schema(
     
         
         {
@@ -44,8 +44,8 @@ const logsSchema = new mongoose.Schema(
 
 );
 
-module.exports = mongoose.model('logsModel',logsSchema);
-module.exports.Schema = logsSchema
+module.exports = mongoose.model('SecurityModel',securitySchema);
+module.exports.Schema = securitySchema
 
 
 
