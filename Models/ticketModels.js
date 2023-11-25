@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const ticketSchema = new mongoose.Schema(
   {
   createdBy: {
-    type: type.Schema.Types.ObjectID,
+    type: mongoose.Schema.Types.ObjectID,
     ref: "User",
     required: true,
   },
   assignedTo: {
-    type: type.Schema.Types.ObjectID,
+    type: mongoose.Schema.Types.ObjectID,
     ref: "User",
   },
   ticketCategory: {
