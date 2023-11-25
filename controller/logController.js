@@ -1,13 +1,16 @@
-const log = require('./Models/logsModel.js');
+const logModel = require('../models/logsModel');
 
-const logData = {
+const logController = {
 
-    Severity: "low",
-    message: "test message"
-}
- const newLog = new log(logData);
-  newLog.save().then((result) => {
-      console.log(result)
-  }).catch((err) => {
-      console.log(err)
-  })
+    getAllLogs: async (req, res) => {
+        try {
+            const logs = await logModel.find();
+            console.log(logs);
+            res.status(200).json(logs);
+        } catch (err) {
+            res.status(500).json({ message: err.message });
+        }
+    }
+};
+
+module.exports = logController;
