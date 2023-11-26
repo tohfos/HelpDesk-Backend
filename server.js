@@ -21,7 +21,7 @@ app.use(cors(corsOptions))
 app.use(bodyParser.json());
 
 
-app.use("/api/auth",AuthRouter);
+app.use("/api/v1",AuthRouter);
 
 const connectDB = async () => {
     try {
