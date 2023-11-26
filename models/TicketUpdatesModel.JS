@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-const usersModel = require("./usersModel");
+const usersModel = require("./userModel");
 const TicketsModel= require("./TicketsModel");
 
 const TicketUpdatesSchema = new mongoose.Schema(
