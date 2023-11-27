@@ -2,65 +2,80 @@ const mongoose = require("mongoose");
 
 const ticketSchema = new mongoose.Schema(
   {
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectID,
-    ref: "User",
-    required: true,
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    assignedTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    ticketCategory: {
+      type: String,
+      enum: ["Software", "Hardware", "Network"],
+    },
+    priority: {
+      type: String,
+      enum: ["Low", "Medium", "High"],
+    },
+    status: {
+      type: String,
+      enum: ["Open", "Closed", "In Progress", "Resolved"],
+    },
+    SubCategory: {
+      type: String,
+      validate: {
+        validator: function (value) {
+          if (this.ticketCategory === "Software") {
+            return [
+              "Operating System",
+              "Application Software",
+              "Custom Software",
+              "Integration Issues",
+            ].includes(value);
+          } else if (this.ticketCategory === "Hardware") {
+            return [
+              "Desktop",
+              "Laptops",
+              "Printers",
+              "Servers",
+              "Networking Equipment",
+            ].includes(value);
+          } else if (this.ticketCategory === "Network") {
+            return [
+              "Email Issues",
+              "Internet Connection Problems",
+              "Website Error",
+            ].includes(value);
+          } else {
+            // Handle other cases or allow any value if needed
+            return true;
+          }
+        },
+        message: (props) =>
+          `${props.value} is not a valid sub-category for the selected category.`,
+      },
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    rating: {
+      type: Number,
+      min: 1,
+      max: 10,
+      default: null,
+    },
   },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectID,
-    ref: "User",
-    required: false,//will be changed !!!!!
+  {
+    timestamps: true,
+  }
+);
 
-  },
-  ticketCategory: {
-    type: String,
-    enum: ["Software", "Hardware", "Network"],
-  },
-  ticketHardwareSubCategory: {
-    type: String,
-    enum: ["Desktop", "Laptops", "Printers", "Servers", "Networking Equipment"],
-  },
-  ticketSoftwareSubCategory: {
-    type: String,
-    enum: [
-      "Operating System",
-      "Application Software",
-      "Custom Software",
-      "Integration Issues",
-    ],
-  },
-  ticketNetworkSubCategory: {
-    type: String,
-    enum: ["Email Issues", "Internet Connection Problems", "Website Error"],
-  },
-  priority: {
-    type: String,
-    enum: ["Low", "Medium", "High"],
-  },
-  status: {
-    type: String,
-    enum: ["Open", "Closed", "In Progress", "Resolved"],
-  },
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  rating: {
-    type: Number,
-    min: 1,
-    max: 10,
-    default: null, // You can set a default value if needed
-  },
-},
-
-{
-  timestamps: true,
-});
-
-module.exports = mongoose.model('Ticket',ticketSchema);
-module.exports.Schema = ticketSchema
+module.exports = mongoose.model("Ticket", ticketSchema);

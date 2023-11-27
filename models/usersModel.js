@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
         UserName: {
             type: String,
             unique: true,
-            minLength: 8,
+            minLength: 6,
             maxLength: 64,
             required: true
         },
@@ -31,11 +31,9 @@ const userSchema = new mongoose.Schema(
         tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
 
         responsibility: {
-            type: {
-                software: { type: Number, default: 0 },
-                hardware: { type: Number, default: 0 },
-                network: { type: Number, default: 0 },
-            },
+            type: String,
+            enum: ['Software', 'Hardware', 'Network'],
+            
             required: function () {
                 return this.Role === 'Agent';
             },
