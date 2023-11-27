@@ -9,6 +9,7 @@ const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
 const AuthRouter = require('./Routes/Auth')
 const userController = require("./controller/userController");
+const ticketRouter = require("./Routes/ticketRoutes");
 
 
 const PORT = process.env.PORT
@@ -22,6 +23,7 @@ app.use(bodyParser.json());
 
 
 app.use("/api/v1",AuthRouter);
+app.use("/api/v1/user/ticket",ticketRouter);
 
 const connectDB = async () => {
     try {

@@ -32,4 +32,4 @@ const TicketUpdatesSchema = new mongoose.Schema(
       }
 );
 module.exports = mongoose.model('TicketUpdate',TicketUpdatesSchema);
-module.exports.Schema = TicketUpdatesSchema
+//module.exports.Schema = TicketUpdatesSchema
