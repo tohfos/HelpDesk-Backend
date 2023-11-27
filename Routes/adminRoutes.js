@@ -4,7 +4,7 @@ const AdminController = require("../controller/AdminController");
 
 
 
-router.post('/createUser',AdminController.CreateUser);
+router.post('/createUser', authorizationMiddleware('Admin') , AdminController.CreateUser);
 
 
 

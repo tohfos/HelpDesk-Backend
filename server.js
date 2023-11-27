@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
+const auth = require('./Middleware/authenticationMiddleware')
 
 //const AuthRouter = require('./Routes/Auth')
 const userRouter = require("./Routes/userRoutes");
@@ -21,6 +22,7 @@ app.use(cookieParser())
 app.use(logger)
 app.use(cors(corsOptions))
 app.use(bodyParser.json());
+app.use(auth)
 
 
 //app.use("/api/v1",AuthRouter);
