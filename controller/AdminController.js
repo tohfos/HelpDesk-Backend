@@ -2,7 +2,7 @@ const User = require('../models/usersModel')
 const bcrypt = require("bcrypt");
 
 
-const Admin ={
+const AdminController ={
 
     CreateUser: async (req, res) => {
         try {
@@ -24,3 +24,5 @@ const Admin ={
 
 
 }
+
+module.exports = AdminController;

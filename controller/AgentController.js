@@ -1,10 +1,9 @@
 const ticketModel = require('../models/ticketModels')
 //const ticketUpdatesModel = require('../models/TicketUpdatesModels')
-
+ 
 
 const AgentController={
     
-
     getTicket: async (req, res) => {
         try {
           const ticket = await ticketModel.findById(req.params.id);
