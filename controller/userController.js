@@ -1,5 +1,6 @@
 const User = require('../models/usersModel')
 const bcrypt = require("bcrypt");
+const ticketModel = require("../models/ticketModels")
 
 const userController = {
 
