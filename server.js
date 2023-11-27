@@ -7,10 +7,11 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
-const AuthRouter = require('./Routes/Auth')
-const userController = require("./controller/userController");
-const ticketRouter = require("./Routes/ticketRoutes");
 
+//const AuthRouter = require('./Routes/Auth')
+const userRouter = require("./Routes/userRoutes");
+const AgentRouter = require("./Routes/AgentRoutes");
+const adminRouter = require("./Routes/adminRoutes");
 
 const PORT = process.env.PORT
 
@@ -22,8 +23,11 @@ app.use(cors(corsOptions))
 app.use(bodyParser.json());
 
 
-app.use("/api/v1",AuthRouter);
-app.use("/api/v1/user/ticket",ticketRouter);
+//app.use("/api/v1",AuthRouter);
+app.use("/api/v1/agent/",AgentRouter);
+app.use("/api/v1/user/",userRouter);
+app.use("/api/v1/admin/",adminRouter);
+
 
 const connectDB = async () => {
     try {
