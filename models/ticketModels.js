@@ -10,6 +10,8 @@ const ticketSchema = new mongoose.Schema(
   assignedTo: {
     type: mongoose.Schema.Types.ObjectID,
     ref: "User",
+    required: false,//will be changed !!!!!
+
   },
   ticketCategory: {
     type: String,
