@@ -6,14 +6,19 @@ const AdminController ={
 
     CreateUser: async (req, res) => {
         try {
-            const { UserName, Password, profile } = req.body;
+            const { UserName, Password, profile ,Role} = req.body;
+                      
             const hashedPassword = await bcrypt.hash(Password, 10);
 
             const newUser = new User({
                 UserName,
                 Password: hashedPassword,
                 profile,
+                Role,
             });
+            if(Role=="Agent") {
+                newUser.responsibility=req.body.responsibility;
+            }
             await newUser.save();
             res.status(201).json({ message: "User registered successfully" });
         } catch (error) {
