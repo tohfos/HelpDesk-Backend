@@ -3,23 +3,47 @@ const bcrypt = require("bcrypt");
 
 const userController = {
 
-    register: async (req, res) => {
-        try {
-            const { UserName, Password, profile } = req.body;
-            const hashedPassword = await bcrypt.hash(Password, 10);
+    createTicket: async (req,res)=>{
+        try{
+            const category=req.body.ticketCategory;
+            console.log(category)
+            const ticket = new ticketModel({
+            
+            createdBy: /* session*/req.params.id,
+            //assignedTo:category === 'software' ? 1 : category === 'hardware' ? 2 : category === 'network' ? 3 : 0,
+            ticketCategory: req.body.ticketCategory,
+            ticketsubCategory: req.body.subcategory,
+            priority:req.body.priority,
+            status:"Open",
+            title:req.body.title,
+            description:req.body.description
+          });
+          console.log("ticket",ticket);
+        
+            const newticket=await ticket.save();
+            console.log(newticket);
+            return res.status(201).json(newticket);
 
-            const newUser = new User({
-                UserName,
-                Password: hashedPassword,
-                profile,
-            });
-            await newUser.save();
-            res.status(201).json({ message: "User registered successfully" });
-        } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
         }
-    }
+        catch(e){
+            return res.status(500).json({ message: e.message });
+        }
+    },
+    //helper method to assigne agents based on category
+    // assigne:(category)=>{
+    //     const result = category === 'software' ? '1' : param === 'hardware' ? '2' : param === 'network' ? '3' : 'Invalid parameter';
+    //     return(result);
+    // },
+    //session
+
+    getTicket: async (req, res) => {
+        try {
+          const ticket = await ticketModel.findById(req.params.id);
+          return res.status(200).json(ticket);
+        } catch (error) {
+          return res.status(500).json({ message: error.message });
+        }
+      },
 
 
 }

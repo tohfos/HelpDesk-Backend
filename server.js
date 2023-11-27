@@ -9,8 +9,8 @@ const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
 const AuthRouter = require('./Routes/Auth')
 const userController = require("./controller/userController");
-const ticketRouter = require("./Routes/ticketRoutes");
-
+const AgentRouter = require("./Routes/AgentRoutes");
+const adminRouter = require("./Routes/adminRoutes");
 
 const PORT = process.env.PORT
 
@@ -23,7 +23,10 @@ app.use(bodyParser.json());
 
 
 app.use("/api/v1",AuthRouter);
-app.use("/api/v1/user/ticket",ticketRouter);
+app.use("/api/v1/agent/",AgentRouter);
+app.use("/api/v1/user/",userController);
+app.use("/api/v1/admin/",adminRouter);
+
 
 const connectDB = async () => {
     try {
