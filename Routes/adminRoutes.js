@@ -5,7 +5,9 @@ const authorizationMiddleware = require("../Middleware/authorizationMiddleware")
 
 
 
+
 router.post('/createUser',authorizationMiddleware(['Admin']),AdminController.CreateUser);
+
 
 
 
