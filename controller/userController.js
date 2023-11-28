@@ -9,10 +9,11 @@ const userController = {
 
     createTicket: async (req,res)=>{
         try{
+
           const Agent_id= await assignAgent(req.body.ticketCategory);
             const ticket = new ticketModel({
             
-            createdBy: /* session*/req.params.id,
+            createdBy: req.userId,
             assignedTo:Agent_id,
             ticketCategory: req.body.ticketCategory,
             SubCategory:req.body.SubCategory,
@@ -32,11 +33,12 @@ const userController = {
         }
     },
   
-    //session
 
     getTicket: async (req, res) => {
-        try {//get by created user
-          const ticket = await ticketModel.findById(req.params.id);
+        try {
+          const ticket = await ticketModel.find({"createdBy": req.userId});
+          if(!ticket){return res.status(404).json({message:"No tickets found created by you "})}
+
           return res.status(200).json(ticket);
         } catch (error) {
           return res.status(500).json({ message: error.message });
