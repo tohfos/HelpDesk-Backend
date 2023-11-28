@@ -24,8 +24,9 @@ const authRoutes = {
     const accessToken = jwt.sign(
       {
         UserInfo: {
-          UserName: foundUser.UserName,
+          username: foundUser.UserName,
           role: foundUser.Role,
+          userid: foundUser._id,
         },
       },
       process.env.ACCESS_TOKEN_SECRET,
@@ -76,7 +77,7 @@ const authRoutes = {
             UserInfo: {
               username: foundUser.UserName,
               role: foundUser.Role,
-              userid : foundUser._id,
+              userid: foundUser._id,
             },
           },
           process.env.ACCESS_TOKEN_SECRET,
