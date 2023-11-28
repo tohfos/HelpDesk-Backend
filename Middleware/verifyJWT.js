@@ -20,4 +20,4 @@ const verifyJWT = (req, res, next) => {
     )
 }
 
-module.export = verifyJWT
+module.exports = verifyJWT
