@@ -1,14 +1,13 @@
 const mongoose = require('mongoose');
-const userModel = require("./usersModel.j")
-
+const usersModel = require("./usersModel");
 const chatSchema = new mongoose.Schema({
 
     userId: { 
-        type: type.Schema.Types.ObjectID,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "userModel"
     },
     agentId: {
-        type: type.Schema.Types.ObjectID,
+        type: mongoose.Schema.Types.ObjectId,
         ref: "userModel" 
         },
     message:{
@@ -26,4 +25,4 @@ const chatSchema = new mongoose.Schema({
 })
 
 module.exports = mongoose.model('Chat',chatSchema);
-module.exports.Schema = chatSchema
+//module.exports.Schema = chatSchema
