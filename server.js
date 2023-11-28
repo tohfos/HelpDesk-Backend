@@ -22,7 +22,7 @@ app.use(cookieParser())
 app.use(logger)
 app.use(cors(corsOptions))
 app.use(bodyParser.json());
-app.use(auth)
+//app.use(auth)
 
 
 //app.use("/api/v1",AuthRouter);
