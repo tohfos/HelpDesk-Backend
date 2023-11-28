@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
+//const auth = require('./Middleware/authenticationMiddleware')
 
 //const AuthRouter = require('./Routes/Auth')
 const userRouter = require("./Routes/userRoutes");
@@ -14,7 +15,6 @@ const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
 const authenticateJWT = require('./Middleware/authenticateJWT');
-
 const PORT = process.env.PORT
 
 const app = express()
@@ -31,6 +31,7 @@ app.use(authenticateJWT)
 app.use("/api/v1/agent/",AgentRouter);
 app.use("/api/v1/user/",userRouter);
 app.use("/api/v1/admin/",adminRouter);
+
 
 
 const connectDB = async () => {
