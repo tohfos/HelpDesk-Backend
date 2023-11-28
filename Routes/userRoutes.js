@@ -4,8 +4,8 @@ const userController = require("../controller/userController");
 const authorizationMiddleware = require("../Middleware/authorizationMiddleware");
 
 
-router.post('/create',authorizationMiddleware(['User']),userController.createTicket);
-router.get('/get',authorizationMiddleware(['User']),userController.getTicket);
+router.post('/create', authorizationMiddleware(['User']), userController.createTicket);
+router.get('/get', authorizationMiddleware(['User']), userController.getTicket);
 
 
 
