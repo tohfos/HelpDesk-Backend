@@ -1,14 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controller/userController");
-const verifyJWT = require('../Middleware/verifyJWT')
+const authorizationJWT = require("../Middleware/authorizeJWT");
 
 
-// router.use(verifyJWT);
-
-
-router.post('/create/:id',userController.createTicket);
-router.get('/get/:id',userController.getTicket);
+router.post('/create', authorizationJWT(['User']), userController.createTicket);
+router.get('/get', authorizationJWT(['User']), userController.getTicket);
 
 
 
