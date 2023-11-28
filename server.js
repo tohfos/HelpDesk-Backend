@@ -13,8 +13,8 @@ const bodyParser = require("body-parser");
 const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
-const verifyJWT = require('./Middleware/verifyJWT');
-const authRouter = require('./Routes/authRoutes')
+const authRouter = require('./Routes/authRoutes');
+const authenticateJWT = require('./Middleware/authenticateJWT');
 const PORT = process.env.PORT
 
 const app = express()
@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 
 //app.use("/api/v1",AuthRouter);
 app.use('/auth', authRouter)
-app.use(verifyJWT)
+app.use(authenticateJWT)
 app.use("/api/v1/agent/",AgentRouter);
 app.use("/api/v1/user/",userRouter);
 app.use("/api/v1/admin/",adminRouter);
