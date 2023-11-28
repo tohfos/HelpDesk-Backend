@@ -4,6 +4,7 @@ const ticketModel = require("../models/ticketModels")
 const usersModel = require("../models/usersModel")
 
 
+
 const userController = {
 
     createTicket: async (req,res)=>{
@@ -34,7 +35,7 @@ const userController = {
     //session
 
     getTicket: async (req, res) => {
-        try {
+        try {//get by created user
           const ticket = await ticketModel.findById(req.params.id);
           return res.status(200).json(ticket);
         } catch (error) {
