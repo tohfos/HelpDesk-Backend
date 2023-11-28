@@ -22,7 +22,7 @@ const ticketSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Open", "Closed", "In Progress", "Resolved"],
+      enum: ["Open", "In Progress", "Resolved"],
     },
     SubCategory: {
       type: String,
@@ -72,6 +72,16 @@ const ticketSchema = new mongoose.Schema(
       max: 10,
       default: null,
     },
+    UpdateDetails:{
+
+      type:String,
+      required:false
+  },
+  updateDate:{
+    type:Date,
+    default:null,
+    required:false
+  }
   },
   {
     timestamps: true,
