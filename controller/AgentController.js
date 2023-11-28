@@ -5,8 +5,8 @@ const ticketModel = require('../models/ticketModels')
 const AgentController={
     
     getTicket: async (req, res) => {
-        try {//get by assigned agent
-          const ticket = await ticketModel.findById(req.params.id);
+        try {
+          const ticket = await ticketModel.find({"assignedTo": req.userId});
           return res.status(200).json(ticket);
         } catch (error) {
           return res.status(500).json({ message: error.message });
@@ -15,8 +15,12 @@ const AgentController={
 
     startTicket:async (req,res)=>{
         try {
-          const ticket = await ticketModel.findById(req.params.id).select("status");          
-          if(ticket.status=="In Progress"){
+          const ticket = await ticketModel.findById(req.params.id).select("status assignedTo"); 
+          if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
+          if(ticket.assignedTo.toString()!=req.userId){
+            return res.status(500).json({ message: "you arenot assigned to that ticket " })
+          }
+          if(ticket.status=="Open"){
             const update = {status:"In Progress"};
             const ticket = await ticketModel.findByIdAndUpdate(
               req.params.id,
@@ -39,7 +43,12 @@ const AgentController={
 
     solveTicket:async (req,res)=>{
         try {
-          const ticket = await ticketModel.findById(req.params.id).select("status");          
+          const ticket = await ticketModel.findById(req.params.id).select("status assignedTo"); 
+          if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
+
+          if(ticket.assignedTo.toString()!=req.userId){
+            return res.status(500).json({ message: "you arenot assigned to that ticket " })
+          }       
           if(ticket.status=="In Progress"){
             const update = {status:"Resolved",UpdateDetails:req.body.UpdateDetails,updateDate:Date.now()};
            const ticket = await ticketModel.findByIdAndUpdate(
@@ -50,9 +59,7 @@ const AgentController={
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
-            // return res
-            //   .status(200)
-            //   .json({ ticket, msg: "ticket Resolved successfully" });
+           
           }
           else{
             return res.status(500).json({ message: "this isnot a In Progress ticket " });
