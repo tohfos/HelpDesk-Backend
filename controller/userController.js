@@ -57,7 +57,29 @@ const userController = {
         }
 
       },
+      updateProfile: async (req, res) => {
 
+          try{
+            const user = await usersModel.findById(req.userId);
+            if(!user){return res.status(404).json({message:"No user found"})}
+            if(!req.body.firstName || !req.body.lastName || !req.body.email || !req.body.phone){
+              return res.status(400).json({message:"Please fill all the fields"})
+            }
+            user.profile.firstName=req.body.firstName;
+            user.profile.lastName=req.body.lastName;
+            user.profile.email=req.body.email;
+            user.profile.phone=req.body.phone;
+            const updatedUser=await user.save();
+            return res.status(200).json(updatedUser.profile);
+          }
+          catch(error){
+            return res.status(500).json({ message: error.message });
+          }
+
+      },
+
+
+   
 
 }
     //helper method to assigne agents based on category
