@@ -76,6 +76,7 @@ const authRoutes = {
             UserInfo: {
               username: foundUser.UserName,
               role: foundUser.Role,
+              userid : foundUser._id,
             },
           },
           process.env.ACCESS_TOKEN_SECRET,
