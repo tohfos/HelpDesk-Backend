@@ -1,5 +1,7 @@
 const User = require('../models/usersModel')
 const bcrypt = require("bcrypt");
+const FaqModel = require('../models/FaqModel')
+
 
 
 const AdminController ={
@@ -21,6 +23,20 @@ const AdminController ={
             }
             await newUser.save();
             res.status(201).json({ message: "User registered successfully" });
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json({ message: error.message });
+        }
+    },
+    AddQuestionsToFAQ: async (req, res) => {
+        try {
+            const { Question, Answer } = req.body;
+            const newQuestion = new FaqModel({
+                Question,
+                Answer,
+            });
+            await newQuestion.save();
+            res.status(201).json({ message: "Question added successfully" });
         } catch (error) {
             console.log(error.message);
             res.status(500).json({ message: error.message });
