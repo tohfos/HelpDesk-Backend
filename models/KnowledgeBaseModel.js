@@ -1,50 +1,60 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 const knowledgeBasedSchema = new mongoose.Schema(
-
-    {
-
-
-        Category: {
-            type: String,
-            enum: ["Software", "Hardware", "Network"],
-            required:true
-          },
-          HardwareSubCategory: {
-            type: String,
-            enum: ["Desktop", "Laptops", "Printers", "Servers", "Networking Equipment"],
-          },
-          SoftwareSubCategory: {
-            type: String,
-            enum: [
+  {
+    Category: {
+      type: String,
+      enum: ["Software", "Hardware", "Network"],
+      required: true,
+    },
+    SubCategory: {
+      type: String,
+      validate: {
+        validator: function (value) {
+          if (this.ticketCategory === "Software") {
+            return [
               "Operating System",
               "Application Software",
               "Custom Software",
               "Integration Issues",
-            ],
-          },
-          NetworkSubCategory: {
-            type: String,
-            enum: ["Email Issues", "Internet Connection Problems", "Website Error"],
-          },
-
-          Question: {
-            type: String,
-            required:true
-
-          },
-          Answer: {
-            type: String,
-            required:true
+            ].includes(value);
+          } else if (this.ticketCategory === "Hardware") {
+            return [
+              "Desktop",
+              "Laptops",
+              "Printers",
+              "Servers",
+              "Networking Equipment",
+            ].includes(value);
+          } else if (this.ticketCategory === "Network") {
+            return [
+              "Email Issues",
+              "Internet Connection Problems",
+              "Website Error",
+            ].includes(value);
+          } else {
+            // Handle other cases or allow any value if needed
+            return true;
           }
-
-
+        },
+        message: (props) =>
+          `${props.value} is not a valid sub-category for the selected category.`,
+      },
     },
-       // schemaOptions
-       {
-        strict: true,
-        timestamps: true,
-      }
-)
+    Question: {
+      type: String,
+      required: true,
+    },
+    Answer: {
+      type: String,
+      required: true,
+    },
+  },
+  // schemaOptions
+  {
+    strict: true,
+    timestamps: true,
+  }
+);
 
-module.exports = mongoose.model('KnowledgeBase',knowledgeBasedSchema);
-module.exports.Schema = knowledgeBasedSchema  
+module.exports = mongoose.model("KnowledgeBase", knowledgeBasedSchema);
+module.exports.Schema = knowledgeBasedSchema;
