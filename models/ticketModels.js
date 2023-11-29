@@ -14,7 +14,7 @@ const ticketSchema = new mongoose.Schema(
     },
     ticketCategory: {
       type: String,
-      enum: ["Software", "Hardware", "Network"],
+      enum: ["Software", "Hardware", "Network","others"],
     },
     priority: {
       type: String,

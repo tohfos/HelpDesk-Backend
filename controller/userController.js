@@ -2,20 +2,21 @@ const User = require('../models/usersModel')
 const bcrypt = require("bcrypt");
 const ticketModel = require("../models/ticketModels")
 const usersModel = require("../models/usersModel")
-
+const chatsModel = require("../models/chatsModel")
 
 
 const userController = {
 
     createTicket: async (req,res)=>{
         try{
-
-          const Agent_id= await assignAgent(req.body.ticketCategory);
+          const category=req.body.ticketCategory
+          if(category!="others"){
+          const Agent_id= await assignAgent(category);
             const ticket = new ticketModel({
             
             createdBy: req.userId,
             assignedTo:Agent_id,
-            ticketCategory: req.body.ticketCategory,
+            ticketCategory: category,
             SubCategory:req.body.SubCategory,
             priority:req.body.priority,
             status:"Open",
@@ -24,10 +25,16 @@ const userController = {
           });
         
             const newticket=await ticket.save();
-            console.log(newticket);
             return res.status(201).json(newticket);
 
+        }else{
+          const chat = new chatsModel({userId:req.userId})
+          const newchat=await chat.save();
+            console.log(newchat);
+            return res.status(201).json(newchat);
         }
+
+      }
         catch(e){
             return res.status(500).json({ message: e.message });
         }
