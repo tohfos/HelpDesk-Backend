@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
+// const nodemailer = require('nodemailer');
 //const auth = require('./Middleware/authenticationMiddleware')
 
 //const AuthRouter = require('./Routes/Auth')
@@ -44,13 +45,32 @@ const connectDB = async () => {
 connectDB()
 
 
-app.use(errorHandler)
+
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail', // e.g., 'gmail'
+//     auth: {
+//         user: process.env.AUTH_EMAIL,
+//         pass: process.env.AUTH_PASS,
+//     },
+//     });
+// transporter.verify((error,seccess)=>{
+//     if(error){
+//         console.log(error)
+//     } else {
+//         console.log("ready for message")
+//         console.log(seccess)
+//     }
+  
+//     })
+  
+
+
 
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB')
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 })
-
+app.use(errorHandler)
 mongoose.connection.on('error', err => {
     console.log(err)
     logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log')
