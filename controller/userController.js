@@ -78,6 +78,19 @@ const userController = {
 
       },
 
+      getFAQ: async (req, res) => {
+        try {
+          
+          const FAQ = await FaqModel.find();
+          return res.status(200).json(FAQ);
+        
+
+          
+        } catch (error) {
+          return res.status(500).json({ message: error.message });
+        }
+      },
+
 
    
 
