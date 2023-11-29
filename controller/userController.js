@@ -2,6 +2,8 @@ const User = require('../models/usersModel')
 const bcrypt = require("bcrypt");
 const ticketModel = require("../models/ticketModels")
 const usersModel = require("../models/usersModel")
+const FaqModel = require("../models/FaqModel")
+const KnowledgeBaseModel = require("../models/KnowledgeBaseModel")
 
 
 
@@ -90,6 +92,32 @@ const userController = {
           return res.status(500).json({ message: error.message });
         }
       },
+
+      filterByCategory: async (req, res) => {
+        try {
+          
+          const FAQ = await KnowledgeBaseModel.find({"Category": req.params.Category});
+          return res.status(200).json(FAQ);
+        
+
+          
+        } catch (error) {
+          return res.status(500).json({ message: error.message });
+        }
+      },
+      filterBySubCategory: async (req, res) => {
+        try {
+          
+          const FAQ = await KnowledgeBaseModel.find({"Category": req.params.Category,"SubCategory": req.params.SubCategory});
+          return res.status(200).json(FAQ);
+        
+
+          
+        } catch (error) {
+          return res.status(500).json({ message: error.message });
+        }
+      },
+
 
 
    
