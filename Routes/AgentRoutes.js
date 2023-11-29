@@ -9,4 +9,5 @@ router.get('/get',authorizationJWT(['Agent']),AgentController.getTicket);
 router.put('/startTicket/:id',authorizationJWT(['Agent']),AgentController.startTicket);
 router.put('/solveTicket/:id',authorizationJWT(['Agent']),AgentController.solveTicket);
 
+
 module.exports = router;
