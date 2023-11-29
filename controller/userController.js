@@ -57,6 +57,10 @@ const userController = {
           const ticket = await ticketModel.findById(req.params.id);
           if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
 
+          if(ticket.createdBy != req.userId){
+            return res.status(403).json({ message: "Not Your Ticket" });
+          }
+
           if(ticket.status != "Resolved"){
             return res.status(500).json({ message: "Ticket is Not Resolved" });
           }
