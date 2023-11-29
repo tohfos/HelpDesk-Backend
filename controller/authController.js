@@ -2,6 +2,7 @@ const usersModel = require("../models/usersModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
+const nodemailer = require('nodemailer');
 
 const authRoutes = {
   login: asyncHandler(async (req, res) => {
@@ -20,6 +21,14 @@ const authRoutes = {
     const match = await bcrypt.compare(Password, foundUser.Password);
 
     if (!match) return res.status(401).json({ message: "Wrong Password" });
+
+    
+    const { generatedOTP, expiry } = generateOTPWithExpiry();
+    sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
+    // const isOTPValid = verifyOTP(OTP, generatedOTP, expiry);
+    // if (!isOTPValid) {
+    //   return res.status(401).json({ message: "Invalid OTP" });
+    // }
 
     const accessToken = jwt.sign(
       {
@@ -51,6 +60,8 @@ const authRoutes = {
     // Send accessToken containing username and roles
     res.json({ accessToken });
   }),
+
+  
 
   refresh: (req, res) => {
     const cookies = req.cookies;
@@ -98,5 +109,46 @@ const authRoutes = {
     res.json({ message: "Cookie cleared" });
   },
 };
+function generateOTPWithExpiry() {
+  const generatedOTP = Math.random().toString(10).substr(2, 4); // Generate a new OTP
+  const expiry = new Date(); // Set OTP expiry to current time
+  expiry.setMinutes(expiry.getMinutes() + 5); // Set expiry time (e.g., 5 minutes from now)
+  return { generatedOTP, expiry };
+}
 
+function verifyOTP(enteredOTP, generatedOTP, expiry) {
+  // Check if the OTP has expired
+  if (new Date() > expiry) {
+    return false;
+  }
+  return enteredOTP === generatedOTP; // Compare entered OTP with the generated OTP
+}
+
+function sendOTPByEmail(email, otp, expiry) {
+  const formattedExpiry = expiry.toLocaleString(); // Format expiry date as a string
+
+  const transporter = nodemailer.createTransport({
+    // Configure your email service details here
+    service: 'gmail',
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASS, // Replace with your password or app-specific password
+    }
+  });
+
+  const mailOptions = {
+    from: process.env.AUTH_EMAIL,
+    to: email,
+    subject: 'Your One-Time Password',
+    text: `Your OTP is: ${otp}\nExpiry Date: ${formattedExpiry}` // Include expiry date in the email text
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
+}
 module.exports = authRoutes;
