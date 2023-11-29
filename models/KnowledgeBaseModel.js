@@ -10,14 +10,14 @@ const knowledgeBasedSchema = new mongoose.Schema(
       type: String,
       validate: {
         validator: function (value) {
-          if (this.ticketCategory === "Software") {
+          if (this.Category === "Software") {
             return [
               "Operating System",
               "Application Software",
               "Custom Software",
               "Integration Issues",
             ].includes(value);
-          } else if (this.ticketCategory === "Hardware") {
+          } else if (this.Category === "Hardware") {
             return [
               "Desktop",
               "Laptops",
@@ -25,7 +25,7 @@ const knowledgeBasedSchema = new mongoose.Schema(
               "Servers",
               "Networking Equipment",
             ].includes(value);
-          } else if (this.ticketCategory === "Network") {
+          } else if (this.Category === "Network") {
             return [
               "Email Issues",
               "Internet Connection Problems",
