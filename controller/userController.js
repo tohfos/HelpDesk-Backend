@@ -45,6 +45,57 @@ const userController = {
     },
   
 
+
+
+      rateTicket: async(req,res)=>{
+        try {
+          const ticket = await ticketModel.findById(req.params.id);
+          if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
+
+          if(ticket.createdBy != req.userId){
+            return res.status(403).json({ message: "Not Your Ticket" });
+          }
+
+          if(ticket.status != "Resolved"){
+            return res.status(500).json({ message: "Ticket is Not Resolved" });
+          }
+          if(ticket.rating != null){
+            return res.status(500).json({ message: "Ticket is already Rated" });
+          }
+
+          const update = {rating:req.body.rating};
+          const ticketupdate = await ticketModel.findByIdAndUpdate(
+            req.params.id,
+            update,
+            { new: true }
+          );
+          return res.status(200).json({message: "ticket rated successfully"});
+          
+        } catch (error) {
+          return res.status(500).json({ message: error.message });
+        }
+      },
+
+      setPassword:async(req,res)=>{
+        try {
+          const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+          console.log(req.userId)
+            const user = usersModel.findByIdAndUpdate(
+            req.userId,
+            {Password:hashedPassword,firstTime:false},
+            {new:true}
+            )
+            return res.status(200).json({ message: "Password reseten"})
+    
+        }catch (error) {
+          res.status(500).json({ message: error.message });
+    
+        }
+        
+    }
+}
+    //helper method to assigne agents based on category
+
   getTicket: async (req, res) => {
     try {
       const ticket = await ticketModel.find({ createdBy: req.userId });
@@ -128,6 +179,7 @@ const userController = {
   },
 };
 //helper method to assigne agents based on category
+
 
 const assignAgent = async (category) => {
   try {

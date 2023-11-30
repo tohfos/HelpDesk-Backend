@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require("../controller/userController");
 const authorizationJWT = require("../Middleware/authorizeJWT");
 
-
+ router.post('/resetPassword', authorizationJWT(['User']), userController.setPassword);
 router.post('/create', authorizationJWT(['User']), userController.createTicket);
 router.get('/get', authorizationJWT(['User']), userController.getTicket);
 router.put('/rate/:id', authorizationJWT(['User']), userController.rateTicket);
