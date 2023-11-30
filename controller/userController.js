@@ -79,9 +79,25 @@ const userController = {
         } catch (error) {
           return res.status(500).json({ message: error.message });
         }
-      }
+      },
 
-
+      setPassword:async(req,res)=>{
+        try {
+          const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+          console.log(req.userId)
+            const user = usersModel.findByIdAndUpdate(
+            req.userId,
+            {Password:hashedPassword,firstTime:false},
+            {new:true}
+            )
+            return res.status(200).json({ message: "Password reseten"})
+    
+        }catch (error) {
+          res.status(500).json({ message: error.message });
+    
+        }
+        
+    }
 }
     //helper method to assigne agents based on category
 

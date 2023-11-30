@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             minLength: 8,
             maxLength: 64,
+            
             required: true
         },
         Role: {
@@ -27,6 +28,10 @@ const userSchema = new mongoose.Schema(
             enum: ['User', 'Admin', 'Agent','Manager'],
             default: 'User'
         },
+        verificationToken: {
+            type: String,
+            default: null, // Set default as null initially
+          },
 
         tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
 
@@ -38,13 +43,19 @@ const userSchema = new mongoose.Schema(
                 return this.Role === 'Agent';
             },
         },
+        firstTime: {
+            type: Boolean,
+            default: true 
+          },
     } // define attr
     ,
     {
         strict: true,
         timestamps: true,
     });
-
+    userSchema.statics.findByVerificationToken = function (token) {
+        return this.findOne({ verificationToken: token });
+      };
 module.exports = mongoose.model('User', userSchema);
 
 
