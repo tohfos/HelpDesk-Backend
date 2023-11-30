@@ -4,8 +4,8 @@ const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
 const FaqModel = require("../models/FaqModel");
 const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
-const ticketModel = require("../models/ticketModels")
-const usersModel = require("../models/usersModel")
+//const ticketModel = require("../models/ticketModels")
+//const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 
 
