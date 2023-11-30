@@ -92,8 +92,8 @@ const userController = {
     
         }
         
-    }
-}
+    },
+
     //helper method to assigne agents based on category
 
   getTicket: async (req, res) => {
