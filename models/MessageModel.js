@@ -15,7 +15,7 @@ const MessageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Chat"
     },
-    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    readBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 
 
 
@@ -25,5 +25,7 @@ const MessageSchema = new mongoose.Schema({
     timestamps:true
 
 })
+
+
 
 module.exports = mongoose.model('message',MessageSchema);

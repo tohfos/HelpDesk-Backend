@@ -14,4 +14,11 @@ router.get('/KnowledgeBase/:Category',authorizationJWT(['User']), userController
 router.get('/KnowledgeBase/:Category/:SubCategory',authorizationJWT(['User']), userController.filterBySubCategory);
 
 
+router.post('/createChat/:id', authorizationJWT(['User']), userController.createChat); //this id is ticket id to craete chat with agent
+router.post('/message/:id', authorizationJWT(['User']), userController.sendMessage); //id is the chat id 
+
+
+
+
+
 module.exports = router;
