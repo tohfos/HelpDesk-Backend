@@ -14,6 +14,9 @@ const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
+const messagingRouter = require('./Routes/messgaingRoute/messagingRoute')
+const userController = require('./controller/userController')
+const AgentController = require('./controller/AgentController')
 const authenticateJWT = require('./Middleware/authenticateJWT');
 
 // Socket.IO
@@ -22,14 +25,16 @@ const socketIO = require('socket.io');
 
 
 const NormalPORT = process.env.PORT; // Use a default port if not provided in the environment
-const MessagePORT = 5000;
+const MessagePORT = process.env.MESSAGE_PORT;
 
 const app = express();
-const server = http.createServer(app); // Create an HTTP server
+const messagingApiApp = express();
+const server = http.createServer(messagingApiApp); // Create an HTTP server
 const io = socketIO(server)
 
 
 app.use(express.json());
+messagingApiApp.use(express.json());
 app.use(cookieParser());
 app.use(logger);
 app.use(errorHandler);
@@ -39,6 +44,8 @@ app.use(bodyParser.json());
 // Routes
 app.use('/auth', authRouter);
 app.use(authenticateJWT);
+messagingApiApp.use(authenticateJWT);
+messagingApiApp.use('/api/chat/', messagingRouter);
 app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/admin/", adminRouter);
@@ -60,11 +67,12 @@ connectDB();
 // Socket.io integration
 io.on('connection', (socket) => {
     console.log('A user connected');
-  
+    messagingApiApp.use('/api/chat/', messagingRouter);
     // Handle events (e.g., messages)
     socket.on('message', (data) => {
       // Broadcast the message to all connected clients
       io.emit('message', data);
+      console.log(data)
     });
   
     // Handle disconnect event
@@ -73,7 +81,8 @@ io.on('connection', (socket) => {
     });
   });
 
-
+userController.initSocketIo(io);
+AgentController.initSocketIo(io);
 
 
 mongoose.connection.once('open', () => {

@@ -6,8 +6,13 @@ const chatsModel = require("../models/chatsModel")
 const messageModel = require("../models/MessageModel")
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
+let ioInstance; // Global variable to store io instance
+
 
 const AgentController = {
+  initSocketIo: (io) => {
+    ioInstance = io;
+  },
   getTicket: async (req, res) => {
     try {
       const ticket = await ticketModel.find({ assignedTo: req.userId });
@@ -123,6 +128,11 @@ const AgentController = {
       // io.to(chatId).emit('chat message', newMessage);
       
       //console.log("chat: " + chat.message[0])
+      ioInstance.emit("message", {
+        type: "newMessage",
+        chatId: chatId,
+        message: newMessage.message,
+      });
       return res.status(201).json({"chat":chat,"Message":newMessage.message});
     } catch (error) {
       console.error(error);

@@ -11,7 +11,6 @@ router.put('/solveTicket/:id',authorizationJWT(['Agent']),AgentController.solveT
 router.post('/addWorkFlow/', authorizationJWT(['Agent']), AgentController.addWorkFlow);
 
 
-router.post('/message/:id', authorizationJWT(['Agent']), AgentController.sendMessage); 
 
 
 
