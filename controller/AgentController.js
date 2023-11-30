@@ -1,19 +1,18 @@
-const ticketModel = require('../models/ticketModels')
+const ticketModel = require("../models/ticketModels");
+const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
- 
 
-const AgentController={
-    
-    getTicket: async (req, res) => {
-        try {
-          const ticket = await ticketModel.find({"assignedTo": req.userId});
-          return res.status(200).json(ticket);
-        } catch (error) {
-          return res.status(500).json({ message: error.message });
-        }
-      },
+const AgentController = {
+  getTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.find({ assignedTo: req.userId });
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
 
     startTicket:async (req,res)=>{
         try {
@@ -79,6 +78,24 @@ const AgentController={
           }
     },
 
+  addWorkFlow: async (req, res) => {
+    try {
+      const { Category, SubCategory, Question, Answer } = req.body;
+      const newKnowledge = new knowledgeBasedModel({
+        Category,
+        SubCategory,
+        Question,
+        Answer,
+      });
+      await newKnowledge.save();
+      return res
+        .status(201)
+        .json({ message: "Knowledge entered successfuly", newKnowledge });
+    } catch (error) {
+      return res.status(400).json(error.message);
+    }
+  },
+};
 
 }
 
