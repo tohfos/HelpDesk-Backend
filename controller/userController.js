@@ -4,7 +4,6 @@ const ticketModel = require("../models/ticketModels")
 const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 
-
 const userController = {
 
     createTicket: async (req,res)=>{
@@ -79,8 +78,7 @@ const userController = {
         } catch (error) {
           return res.status(500).json({ message: error.message });
         }
-      }
-
+      },
 
 }
     //helper method to assigne agents based on category
