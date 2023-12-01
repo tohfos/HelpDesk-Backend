@@ -7,6 +7,7 @@ router.route('/').post(authController.login)
 
 router.route('/refresh').get(authController.refresh)
 
+router.route('/verify').get(authController.verify)
 
 router.route('/logout').post(authController.logout)
 

@@ -1,12 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const userController = require("../controller/userController");
-const authorizationMiddleware = require("../Middleware/authorizationMiddleware");
+const authorizationJWT = require("../Middleware/authorizeJWT");
 
-
-router.post('/create', authorizationMiddleware(['User']), userController.createTicket);
-router.get('/get', authorizationMiddleware(['User']), userController.getTicket);
-
+ router.post('/resetPassword', authorizationJWT(['User']), userController.setPassword);
+router.post('/create', authorizationJWT(['User']), userController.createTicket);
+router.get('/get', authorizationJWT(['User']), userController.getTicket);
+router.put('/rate/:id', authorizationJWT(['User']), userController.rateTicket);
+router.get('/profile',authorizationJWT(['User']), userController.getProfile);
+router.put('/updateProfile',authorizationJWT(['User']), userController.updateProfile);
+router.get('/KnowledgeBase',authorizationJWT(['User']), userController.getFAQ);
+router.get('/KnowledgeBase/:Category',authorizationJWT(['User']), userController.filterByCategory);
+router.get('/KnowledgeBase/:Category/:SubCategory',authorizationJWT(['User']), userController.filterBySubCategory);
 
 
 module.exports = router;

@@ -13,6 +13,7 @@ const authenticate = (req, res, next) => {
     req.user = decoded.UserInfo.username;
     req.role = decoded.UserInfo.role;
     req.userId = decoded.UserInfo.userid;
+    req.email = decoded.UserInfo.email;
     next();
   });
 };
