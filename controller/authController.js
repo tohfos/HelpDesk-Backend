@@ -153,12 +153,19 @@ function generateOTPWithExpiry() {
   return { generatedOTP, expiry };
 }
 
-function verifyOTP(enteredOTP, generatedOTP, expiry) {
-  // Check if the OTP has expired
+ verifyOTP:(req,res)=> {
+try {
   if (new Date() > expiry) {
     return false;
-  }
-  return enteredOTP === generatedOTP; // Compare entered OTP with the generated OTP
+  }  
+  if (req.body.otp==req.params.otp)
+
+  res.status(200).(); // Compare entered OTP with the generated OTP
+
+} catch (error) {
+  res.status(500).json({ message: error.message });
+
+}  
 }
 
 function sendOTPByEmail(email, otp, expiry) {

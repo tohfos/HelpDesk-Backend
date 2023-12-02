@@ -16,7 +16,10 @@ const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
 const authenticateJWT = require('./Middleware/authenticateJWT');
+//const chatRoutes = require('./Routes/chatRoutes')
 const PORT = process.env.PORT
+
+
 
 const app = express()
 app.use(express.json())
@@ -25,6 +28,11 @@ app.use(logger)
 app.use(cors(corsOptions))
 app.use(bodyParser.json());
 
+//testing
+const http = require('http');
+const socketIo = require('socket.io');
+const server = http.createServer(app);
+const io = socketIo(server);
 
 //app.use("/api/v1",AuthRouter);
 app.use('/auth', authRouter)
@@ -32,6 +40,7 @@ app.use(authenticateJWT)
 app.use("/api/v1/agent/",AgentRouter);
 app.use("/api/v1/user/",userRouter);
 app.use("/api/v1/admin/",adminRouter);
+
 
 
 
@@ -45,6 +54,19 @@ const connectDB = async () => {
 connectDB()
 
 
+
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    // Remove the user from activeSockets
+
+    
+  });
+});
 
 // const transporter = nodemailer.createTransport({
 //     service: 'gmail', // e.g., 'gmail'
@@ -64,11 +86,13 @@ connectDB()
 //     })
   
 
+const chatRoutes = require('./Routes/chatRoutes')(io)
+app.use('/api/chats', chatRoutes);
 
 
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB')
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 })
 app.use(errorHandler)
 mongoose.connection.on('error', err => {
