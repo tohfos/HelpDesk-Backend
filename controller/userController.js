@@ -7,19 +7,23 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
+const Queue = require("../queue");
 
-
+const High_priority = new Queue()
+const Medium_priority = new Queue()
+const Low_priority = new Queue()
 const userController = {
+  
 
     createTicket: async (req,res)=>{
         try{
           const category=req.body.ticketCategory
           if(category!="others"){
-          const Agent_id= await assignAgent(category);
+          // const Agent_id= await assignAgent(category);
             const ticket = new ticketModel({
             
             createdBy: req.userId,
-            assignedTo:Agent_id,
+            // assignedTo:Agent_id,
             ticketCategory: category,
             SubCategory:req.body.SubCategory,
             priority:req.body.priority,
@@ -29,6 +33,8 @@ const userController = {
           });
         
             const newticket=await ticket.save();
+            addtoQ(newticket);
+            assigneAgent();
             return res.status(201).json(newticket);
 
         }else{
@@ -181,16 +187,63 @@ const userController = {
 //helper method to assigne agents based on category
 
 
-const assignAgent = async (category) => {
+const assigneAgent = async () => {
   try {
-    const agents = await usersModel
-      .find({ responsibility: category })
-      .select("_id");
-    return agents[0]._id;
+    if (High_priority.size()!=0){
+      const ticket = High_priority.pop();
+console.log(ticket)
+    const agent = await usersModel
+    .find({ responsibility: ticket.ticketCategory })
+    
+   
+      console.log("agent",agent)
+      console.log("Agent",agent._id)
+
+      const arr=agent.assignedTicket|| [];
+      arr.push(ticket);
+      // console.log("Arr",arr)
+      const a= usersModel.findById(agent._id);
+      console.log(a.profile)
+      // if(arr.length<5){
+      //   usersModel.findByIdAndUpdate(,
+      //      {"assignedTicket":arr},
+      //     {new:true})
+      //   ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
+      // }
+  //      if(agent.assignedTicket.size()<5){
+  //       usersModel.findByIdAndUpdate(agent.id,{assignedTicket:agent.assignedTicket.add(ticket)},{new:true})
+  //       ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true})        
+  // }
+    }
   } catch (error) {
     throw new Error(error.message);
   }
 };
+  const addtoQ = async (ticket) => {
+    // console.log(ticket.priority);
+    switch (ticket.priority) {
+      case "High":
+        
+        High_priority.add(ticket);
+        break;
+      case "Medium":
+        Medium_priority.add(ticket);
+        break;
+      case "Low":
+        Low_priority.add(ticket);
+        break;
+      default:
+        // Handle any other cases here
+        break;
+    }
+
+
+
+
+
+
+
+  }
 
 
 module.exports = userController;

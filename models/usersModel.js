@@ -47,6 +47,30 @@ const userSchema = new mongoose.Schema(
             type: Boolean,
             default: true 
           },
+          assignedTicket: {
+            type: [{
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "ticket"
+            }],
+            validate: [
+                {
+                    validator: function () {
+                        return this.Role === 'Agent';
+                    },
+                    message: 'assignedTicket is required for agents'
+                },
+                {
+                    validator: function (array) {
+                        return array.length <= 5;
+                    },
+                    message: 'assignedTicket array can have at most 5 elements'
+                }
+            ],
+            // default: []
+        }
+        
+        
+
     } // define attr
     ,
     {

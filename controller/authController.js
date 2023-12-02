@@ -31,7 +31,7 @@ const authRoutes = {
     
     const { generatedOTP, expiry } = generateOTPWithExpiry();
 
-   sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
+   //sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
 
     // const isOTPValid = verifyOTP(OTP, generatedOTP, expiry);
     // if (!isOTPValid) {
