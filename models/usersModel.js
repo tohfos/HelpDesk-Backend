@@ -18,11 +18,21 @@ const userSchema = new mongoose.Schema(
         },
         Password: {
             type: String,
-            minLength: 8,
+            // minLength: 8,
             maxLength: 64,
             
             required: true
         },
+        OTP: {
+            hashedOTP: {
+              type: String,
+              default: null,
+            },
+            OTPExpiry: {
+              type: Date,
+              default: null,
+            },
+          },
         Role: {
             type: String,
             enum: ['User', 'Admin', 'Agent','Manager'],
@@ -34,41 +44,50 @@ const userSchema = new mongoose.Schema(
           },
 
         // tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
-
-        responsibility: {
-            type: String,
-            enum: ['Software', 'Hardware', 'Network'],
-            
-            required: function () {
-                return this.Role === 'Agent';
+        // responsibilities:{
+            Highresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
             },
-        },
+            Midresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
+            },
+            Lowresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
+            },
+        
         firstTime: {
             type: Boolean,
             default: true 
           },
-          assignedTicket: {
-            type: [{
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "ticket"
-            }],
-            validate: [
-                {
-                    validator: function () {
-                        return this.Role === 'Agent';
-                    },
-                    message: 'assignedTicket is required for agents'
-                },
-                {
-                    validator: function (array) {
-                        return array.length <= 5;
-                    },
-                    message: 'assignedTicket array can have at most 5 elements'
-                }
-            ],
-            // default: []
-        }
-        
+          // Other parts of your schema remain unchanged
+
+assignedTicket: {
+    type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ticket"
+    }],
+    required: function () {
+        return this.Role === 'Agent';
+    },
+    default: [],
+    
+}
+
         
 
     } // define attr

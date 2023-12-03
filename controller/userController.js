@@ -1,4 +1,3 @@
-const User = require("../models/usersModel");
 const bcrypt = require("bcrypt");
 const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
@@ -9,9 +8,6 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 const chatsModel = require("../models/chatsModel")
 const Queue = require("../queue");
 
-const High_priority = new Queue()
-const Medium_priority = new Queue()
-const Low_priority = new Queue()
 const userController = {
   
 
@@ -19,7 +15,6 @@ const userController = {
         try{
           const category=req.body.ticketCategory
           if(category!="others"){
-          // const Agent_id= await assignAgent(category);
             const ticket = new ticketModel({
             
             createdBy: req.userId,
@@ -33,8 +28,8 @@ const userController = {
           });
         
             const newticket=await ticket.save();
-            addtoQ(newticket);
-            assigneAgent();
+            Queue.addtoQ(newticket);
+            Queue.assigneAgent();
             return res.status(201).json(newticket);
 
         }else{
@@ -84,7 +79,7 @@ const userController = {
 
       setPassword:async(req,res)=>{
         try {
-          const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+          const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
           console.log(req.userId)
             const user = usersModel.findByIdAndUpdate(
             req.userId,
@@ -183,67 +178,23 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  resetPassword: async (req,res)=>{
+   const oldpass =req.body.oldpass
+   const newpass =req.body.newpass
+   const user=  await usersModel.findById(req.userId)
+   const match = await bcrypt.compare(oldpass, user.Password);
+   if (!match) return res.status(401).json({ message: "Wrong Password" });
+   user.Password=await bcrypt.hash(newpass,10)
+   user.firstTime=false
+
+   await user.save();
+
+    return res.status(200).json({message:"password resetten "})
+  }
 };
 //helper method to assigne agents based on category
 
-
-const assigneAgent = async () => {
-  try {
-    if (High_priority.size()!=0){
-      const ticket = High_priority.pop();
-console.log(ticket)
-    const agent = await usersModel
-    .find({ responsibility: ticket.ticketCategory })
-    
-   
-      console.log("agent",agent)
-      console.log("Agent",agent._id)
-
-      const arr=agent.assignedTicket|| [];
-      arr.push(ticket);
-      // console.log("Arr",arr)
-      const a= usersModel.findById(agent._id);
-      console.log(a.profile)
-      // if(arr.length<5){
-      //   usersModel.findByIdAndUpdate(,
-      //      {"assignedTicket":arr},
-      //     {new:true})
-      //   ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
-      // }
-  //      if(agent.assignedTicket.size()<5){
-  //       usersModel.findByIdAndUpdate(agent.id,{assignedTicket:agent.assignedTicket.add(ticket)},{new:true})
-  //       ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true})        
-  // }
-    }
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-  const addtoQ = async (ticket) => {
-    // console.log(ticket.priority);
-    switch (ticket.priority) {
-      case "High":
-        
-        High_priority.add(ticket);
-        break;
-      case "Medium":
-        Medium_priority.add(ticket);
-        break;
-      case "Low":
-        Low_priority.add(ticket);
-        break;
-      default:
-        // Handle any other cases here
-        break;
-    }
-
-
-
-
-
-
-
-  }
+//helper 
 
 
 module.exports = userController;

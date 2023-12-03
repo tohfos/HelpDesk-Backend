@@ -13,9 +13,10 @@ const AdminController ={
     CreateUser: async (req, res) => {
         try {
             const { UserName, Password, profile ,Role} = req.body;
-                      
-           const hashedPassword = await bcrypt.hash(Password, 10);
-           const verificationToken = generateVerificationToken(); 
+            const verificationToken = generateVerificationToken(); 
+              sendVerificationEmail(UserName, Password,verificationToken,profile.email);
+
+          const hashedPassword = await bcrypt.hash(Password, 10);
 
             const newUser = new User({
                 UserName,
@@ -25,10 +26,15 @@ const AdminController ={
                 verificationToken:verificationToken
             });
             if(Role=="Agent") {
-                newUser.responsibility=req.body.responsibility;
+                newUser.Highresponsibility=req.body.Highresponsibility;
+
+                newUser.Midresponsibility=req.body.Midresponsibility;
+
+                newUser.Lowresponsibility=req.body.Lowresponsibility;
+
+                
             }
-            console.log(verificationToken)
-            // sendVerificationEmail(req.body.profile.email, verificationToken);
+            
             
             await newUser.save();
             res.status(201).json({ message: "User registered successfully" });
@@ -57,7 +63,7 @@ const AdminController ={
 function generateVerificationToken() {
     return crypto.randomBytes(20).toString('hex');
   }
-  const sendVerificationEmail = async (email, verificationToken) => {
+  const sendVerificationEmail = async (username,pass,token,email) => {
   
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -71,7 +77,9 @@ function generateVerificationToken() {
         to: email,
         subject: 'Account Verification',
         html: `<p>Please click the following link to verify your account:</p>
-               <a href="http://localhost:3000/verify?token=${verificationToken}">Verify</a>`,
+               <a href="http://localhost:3000/auth/verify?token=${token}">Verify</a>
+               Your username:${username}
+               Your passWord:${pass}`,
       };
   
       transporter.sendMail(mailOptions, (error, info) => {

@@ -24,20 +24,71 @@ const authRoutes = {
     if( foundUser.verificationToken != null){
       return res.status(400).json({ message: "your account isnot verified check ur inbox" });
     }
+
     const match = await bcrypt.compare(Password, foundUser.Password);
 
     if (!match) return res.status(401).json({ message: "Wrong Password" });
 
-    
+    if(foundUser.firstTime){
+      const accessToken = jwt.sign(
+        {
+          UserInfo: {
+            username: foundUser.UserName,
+            role: foundUser.Role,
+            userid: foundUser._id,
+            email: foundUser.profile.email,
+          },
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "15m" }
+      );
+  
+      const refreshToken = jwt.sign(
+        { UserName: foundUser.UserName },
+        process.env.REFRESH_TOKEN_SECRET,
+        { expiresIn: "7d" }
+      );
+  
+      // Create secure cookie with refresh token
+      res.cookie("jwt", refreshToken, {
+        httpOnly: true, //accessible only by web server
+        // secure: true, //https
+        sameSite: "None", //cross-site cookie
+        maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
+      });
+      return res.status(200).json({ accessToken, resetPassword: true });
+    }
     const { generatedOTP, expiry } = generateOTPWithExpiry();
-
-   //sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
+    sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
+    foundUser.OTP.hashedOTP=await bcrypt.hash(generatedOTP,8)
+    foundUser.OTP.expiry=expiry
+    await foundUser.save();
 
     // const isOTPValid = verifyOTP(OTP, generatedOTP, expiry);
     // if (!isOTPValid) {
     //   return res.status(401).json({ message: "Invalid OTP" });
     // }
 
+   
+    res.json({message:"check your inbox for OTP",user_id:foundUser.id})
+    //   res.json({ accessToken });
+
+
+  }),
+
+   verifyOTP:async(req,res)=> {
+    // Check if the OTP has expired
+    const foundUser= await usersModel.findById(req.params.id)
+    
+    const match = await bcrypt.compare(req.body.otp, foundUser.OTP.hashedOTP);
+
+    if (!match) return res.status(401).json({ message: "Wrong OTP" });
+    
+    if (new Date() > foundUser.OTP.expiry) {
+      return res.status(500).json({message:"OTP expired "});
+    }
+    foundUser.OTP=null
+    await foundUser.save()
     const accessToken = jwt.sign(
       {
         UserInfo: {
@@ -64,16 +115,8 @@ const authRoutes = {
       sameSite: "None", //cross-site cookie
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
     });
-
-    if(foundUser.firstTime){
-      return res.status(200).json({ accessToken, resetPassword: true });
-    }
-       res.json({ accessToken });
-
-
-  }),
-
-  
+    return res.status(200).json({ accessToken });
+},
 
   refresh: (req, res) => {
     const cookies = req.cookies;
@@ -137,7 +180,7 @@ const authRoutes = {
   
       res.send('Account verified successfully');
     } catch (error) {
-      res.status(500).json({ message: error.message });
+      res.status(500).json({ message: "error.message "});
 
     }
     
@@ -146,20 +189,14 @@ const authRoutes = {
  
 }
 function generateOTPWithExpiry() {
-  const generatedOTP = Math.random().toString(36).substr(2, 6); // Generate a new OTP
+  const generatedOTP = Math.random().toString(10).substr(2, 4); // Generate a new OTP
 
   const expiry = new Date(); // Set OTP expiry to current time
   expiry.setMinutes(expiry.getMinutes() + 5); // Set expiry time (e.g., 5 minutes from now)
   return { generatedOTP, expiry };
 }
 
-function verifyOTP(enteredOTP, generatedOTP, expiry) {
-  // Check if the OTP has expired
-  if (new Date() > expiry) {
-    return false;
-  }
-  return enteredOTP === generatedOTP; // Compare entered OTP with the generated OTP
-}
+
 
 function sendOTPByEmail(email, otp, expiry) {
   const formattedExpiry = expiry.toLocaleString(); // Format expiry date as a string
