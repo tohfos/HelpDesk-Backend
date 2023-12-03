@@ -1,4 +1,5 @@
 const User = require('../models/usersModel')
+const UserPrefrences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
 
 const crypto = require('crypto');
@@ -8,28 +9,28 @@ const FaqModel = require('../models/FaqModel')
 
 
 
-const AdminController ={
+const AdminController = {
 
     CreateUser: async (req, res) => {
         try {
-            const { UserName, Password, profile ,Role} = req.body;
-                      
-           const hashedPassword = await bcrypt.hash(Password, 10);
-           const verificationToken = generateVerificationToken(); 
+            const { UserName, Password, profile, Role } = req.body;
+
+            const hashedPassword = await bcrypt.hash(Password, 10);
+            const verificationToken = generateVerificationToken();
 
             const newUser = new User({
                 UserName,
-               Password: hashedPassword,
+                Password: hashedPassword,
                 profile,
                 Role,
-                verificationToken:verificationToken
+                verificationToken: verificationToken
             });
-            if(Role=="Agent") {
-                newUser.responsibility=req.body.responsibility;
+            if (Role == "Agent") {
+                newUser.responsibility = req.body.responsibility;
             }
             console.log(verificationToken)
             sendVerificationEmail(req.body.profile.email, verificationToken);
-            
+
             await newUser.save();
             res.status(201).json({ message: "User registered successfully" });
         } catch (error) {
@@ -52,36 +53,66 @@ const AdminController ={
         }
     },
 
+    ChangeTheme: async (req, res) => {
+        try {
+
+            const { mainTheme, secondaryTheme } = req.body;
+
+            // Check if a document already exists
+            let preferences = await UserPrefrences.findOne();
+
+            if (!preferences) {
+                // If no document exists, create a new one
+                preferences = new UserPreferences({
+                    mainTheme,
+                    secondaryTheme,
+                });
+            } else {
+                // If a document exists, update the existing one
+                preferences.mainTheme = mainTheme;
+                preferences.secondaryTheme = secondaryTheme;
+            }
+
+            // Save the document to the collection
+            await preferences.save();
+
+            res.status(201).json({ message: "Theme changed successfully" });
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json({ message: error.message });
+        }
+    }
+
 
 }
 function generateVerificationToken() {
     return crypto.randomBytes(20).toString('hex');
-  }
-  const sendVerificationEmail = async (email, verificationToken) => {
-  
+}
+const sendVerificationEmail = async (email, verificationToken) => {
+
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-                user: process.env.AUTH_EMAIL,
-                pass: process.env.AUTH_PASS,
-            },
+        service: 'gmail',
+        auth: {
+            user: process.env.AUTH_EMAIL,
+            pass: process.env.AUTH_PASS,
+        },
     });
-   
+
     const mailOptions = {
         to: email,
         subject: 'Account Verification',
         html: `<p>Please click the following link to verify your account:</p>
                <a href="http://localhost:3000/verify?token=${verificationToken}">Verify</a>`,
-      };
-  
-      transporter.sendMail(mailOptions, (error, info) => {
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-          console.error(error);
-          reject('Error sending verification email');
+            console.error(error);
+            reject('Error sending verification email');
         } else {
-          console.log('Email sent: ' + info.response);
-          resolve('Verification email sent');
+            console.log('Email sent: ' + info.response);
+            resolve('Verification email sent');
         }
-      });
-  }
+    });
+}
 module.exports = AdminController;

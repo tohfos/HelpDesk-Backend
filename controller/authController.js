@@ -1,8 +1,10 @@
 const usersModel = require("../models/usersModel");
+const UserPreferences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const nodemailer = require('nodemailer');
+
 
 //const userController = require('/userController');
 
@@ -21,17 +23,17 @@ const authRoutes = {
     if (!foundUser) {
       return res.status(401).json({ message: "No such user exists" });
     }
-    if( foundUser.verificationToken != null){
+    if (foundUser.verificationToken != null) {
       return res.status(400).json({ message: "your account isnot verified check ur inbox" });
     }
     const match = await bcrypt.compare(Password, foundUser.Password);
 
     if (!match) return res.status(401).json({ message: "Wrong Password" });
 
-    
+
     const { generatedOTP, expiry } = generateOTPWithExpiry();
 
-   sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
+    sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
 
     // const isOTPValid = verifyOTP(OTP, generatedOTP, expiry);
     // if (!isOTPValid) {
@@ -65,15 +67,15 @@ const authRoutes = {
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
     });
 
-    if(foundUser.firstTime){
+    if (foundUser.firstTime) {
       return res.status(200).json({ accessToken, resetPassword: true });
     }
-       res.json({ accessToken });
+    res.json({ accessToken });
 
 
   }),
 
-  
+
 
   refresh: (req, res) => {
     const cookies = req.cookies;
@@ -122,29 +124,48 @@ const authRoutes = {
   },
 
 
-  verify: async (req,res)=>{
+  verify: async (req, res) => {
     const { token } = req.query;
 
     try {
       const user = await usersModel.findByVerificationToken(token);
-  
+
       if (!user) {
         return res.status(404).send('Invalid token or user not found');
       }
-  
-      user.verificationToken = null; 
+
+      user.verificationToken = null;
       await user.save();
-  
+
       res.send('Account verified successfully');
     } catch (error) {
       res.status(500).json({ message: error.message });
 
     }
-    
+
 
   },
- 
+
+  // get theme from user prefrences
+  getTheme: async (req, res) => {
+    try {
+      // Find the document in the collection
+      const preferences = await UserPreferences.findOne();
+
+      if (!preferences) {
+        console.log('No user preferences found.');
+        return null;
+      }
+
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
 }
+
+
 function generateOTPWithExpiry() {
   const generatedOTP = Math.random().toString(36).substr(2, 6); // Generate a new OTP
 

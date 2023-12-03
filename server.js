@@ -29,9 +29,9 @@ app.use(bodyParser.json());
 //app.use("/api/v1",AuthRouter);
 app.use('/auth', authRouter)
 app.use(authenticateJWT)
-app.use("/api/v1/agent/",AgentRouter);
-app.use("/api/v1/user/",userRouter);
-app.use("/api/v1/admin/",adminRouter);
+app.use("/api/v1/agent/", AgentRouter);
+app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/admin/", adminRouter);
 
 
 
@@ -60,9 +60,9 @@ connectDB()
 //         console.log("ready for message")
 //         console.log(seccess)
 //     }
-  
+
 //     })
-  
+
 
 
 
