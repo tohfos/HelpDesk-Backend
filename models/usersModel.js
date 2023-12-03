@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
             default: null, // Set default as null initially
           },
 
-        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
+        // tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
 
         responsibility: {
             type: String,
