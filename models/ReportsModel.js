@@ -11,11 +11,21 @@ const ReportSchema = new mongoose.Schema(
                 minLength: 3,
                 maxLength: 500,
             },
+            ticket: { 
+                type: mongoose.Schema.Types.ObjectId, 
+                ref: 'Ticket', 
+                required: true 
+            },
             user: { 
                 type: mongoose.Schema.Types.ObjectId, 
                 ref: 'User', 
                 required: true 
-            }
+            },
+            Agent: { 
+                type: mongoose.Schema.Types.ObjectId, 
+                ref: 'User', 
+                required: true 
+            },
 
             
             
