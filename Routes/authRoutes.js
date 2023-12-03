@@ -11,4 +11,6 @@ router.route('/verify').get(authController.verify)
 
 router.route('/logout').post(authController.logout)
 
+router.route('/getTheme').get(authController.getTheme)
+
 module.exports = router

@@ -163,6 +163,8 @@ const authRoutes = {
       res.status(500).json({ message: error.message });
     }
   },
+
+
 }
 
 
