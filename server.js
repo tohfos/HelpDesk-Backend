@@ -16,6 +16,8 @@ const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
 const authenticateJWT = require('./Middleware/authenticateJWT');
+const chatRoutes = require('./Routes/chatRoutes')
+
 //const chatRoutes = require('./Routes/chatRoutes')
 const PORT = process.env.PORT
 
@@ -40,8 +42,7 @@ app.use(authenticateJWT)
 app.use("/api/v1/agent/",AgentRouter);
 app.use("/api/v1/user/",userRouter);
 app.use("/api/v1/admin/",adminRouter);
-
-
+app.use('/api/chats', chatRoutes(io));
 
 
 const connectDB = async () => {
@@ -54,20 +55,26 @@ const connectDB = async () => {
 connectDB()
 
 
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    // Remove the user from activeSockets
-
-    
-  });
+app.use((req, res, next) => {
+    req.io = io;
+    next();
 });
 
+io.on('connection', (socket) => {
+    console.log('User connected:', socket.id);
+  
+    // Join a room based on ticketId
+    socket.on('joinRoom', (data) => {
+      socket.join(data.roomName);
+      console.log(`User ${socket.id} joined room ${data.roomName}`);
+    });
+  
+    // Leave a room when disconnected
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+      socket.leaveAll(); // Leave all rooms
+    });
+  });
 // const transporter = nodemailer.createTransport({
 //     service: 'gmail', // e.g., 'gmail'
 //     auth: {
@@ -86,8 +93,6 @@ io.on('connection', (socket) => {
 //     })
   
 
-const chatRoutes = require('./Routes/chatRoutes')(io)
-app.use('/api/chats', chatRoutes);
 
 
 mongoose.connection.once('open', () => {
@@ -99,3 +104,5 @@ mongoose.connection.on('error', err => {
     console.log(err)
     logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log')
 })
+
+
