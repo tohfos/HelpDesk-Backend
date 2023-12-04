@@ -68,6 +68,12 @@ io.on('connection', (socket) => {
       socket.join(data.roomName);
       console.log(`User ${socket.id} joined room ${data.roomName}`);
     });
+    socket.on('newMessage', (data) => {
+        const roomName = data.roomName;
+    
+        // Emit the new message only to the sender and receiver
+        io.to(socket.id).to(roomName).emit('newMessage', data.message);
+      });
   
     // Leave a room when disconnected
     socket.on('disconnect', () => {

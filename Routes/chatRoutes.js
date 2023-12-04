@@ -15,6 +15,9 @@ const chatRoutes = (io) => {
       if(!chats){
         res.status(401).json({ message: 'no chat found' });
       }
+      if(req.userId != chats.userId || eq.userId != chats.agentId){
+        return res.status(500).json({ error: 'not your chat' });
+      }
       res.json(chats);
     } catch (error) {
       console.error(error);
@@ -30,6 +33,10 @@ const chatRoutes = (io) => {
 
       if (!ticket) {
         return res.status(404).json({ message: 'Ticket not found' });
+      }
+      
+      if(req.userId != ticket.createdBy || req.userId != ticket.assignedTo){
+        return res.status(500).json({ error: 'not your chat' });
       }
 
       const user = ticket.createdBy;
