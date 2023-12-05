@@ -1,44 +1,45 @@
-const { exec } = require('child_process');
-const moment = require('moment');
+const { spawn } = require('child_process');
+const path = require('path');
 
-// Function to execute mongodump command
+/* 
+Basic mongo dump and restore commands, they contain more options you can have a look at man page for both of them.
+1. mongodump --db=rbac_tutorial --archive=./rbac.gzip --gzip
+2. mongorestore --db=rbac_tutorial --archive=./rbac.gzip --gzip
+
+Using mongodump - without any args:
+  will dump each and every db into a folder called "dump" in the directory from where it was executed.
+Using mongorestore - without any args:
+  will try to restore every database from "dump" folder in current directory, if "dump" folder does not exist then it will simply fail.
+*/
+
+const DB_NAME = 'HelpDesk';
+const ARCHIVE_PATH = path.join(__dirname, `${DB_NAME}.gzip`);
+
+// 1. Cron expression for every 5 seconds - */5 * * * * *
+// 2. Cron expression for every night at 00:00 hours (0 0 * * * )
+// Note: 2nd expression only contains 5 fields, since seconds is not necessary
+
+
 function backupMongoDB() {
-  const currentDate = moment().format('YYYY-MM-DD-HH-mm-ss');
-  console.log(currentDate)
-  const backupPath = `./backups/HelpDesk_backup-${currentDate}`;
+  const child = spawn('mongodump', [
+    `--db=${DB_NAME}`,
+    `--archive=${ARCHIVE_PATH}`,
+    '--gzip',
+  ]);
 
-  const mongodumpCommand = `mongodump --db HelpDesk --out ${backupPath}`;
-
-  exec(mongodumpCommand, (error, stdout, stderr) => {
-    if (error) {
-      console.error(`Error: ${error.message}`);
-      return;
-    }
-    if (stderr) {
-      console.error(`stderr: ${stderr}`);
-      return;
-    }
-    console.log(`Backup created successfully at: ${backupPath}`);
+  child.stdout.on('data', (data) => {
+    console.log('stdout:\n', data);
+  });
+  child.stderr.on('data', (data) => {
+    console.log('stderr:\n', Buffer.from(data).toString());
+  });
+  child.on('error', (error) => {
+    console.log('error:\n', error);
+  });
+  child.on('exit', (code, signal) => {
+    if (code) console.log('Process exit with code:', code);
+    else if (signal) console.log('Process killed with signal:', signal);
+    else console.log('Backup is successfull ✅');
   });
 }
-
-// Schedule the backup to run daily at a specific time (e.g., 00:00 UTC)
-function scheduleDailyBackup() {
-  const now = moment();
-  const targetTime = moment().utc().set({ hour: 0, minute: 0, second: 0 });
-
-  if (now.isAfter(targetTime)) {
-    targetTime.add(1, 'days');
-  }
-
-  const delay = targetTime.diff(now);
-
-  setTimeout(() => {
-    backupMongoDB();
-    setInterval(backupMongoDB, 24 * 60 * 60 * 1000); // Repeat daily
-  }, delay);
-}
-
-// Start the backup schedule
-scheduleDailyBackup();
-module.exports = backupMongoDB; 
+module.exports = backupMongoDB; // Export the function to perform the backup
