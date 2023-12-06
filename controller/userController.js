@@ -5,14 +5,10 @@ const usersModel = require("../models/usersModel");
 const FaqModel = require("../models/FaqModel");
 const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 const chatsModel = require("../models/chatsModel");
-const messageModel = require("../models/MessageModel");
 
-let ioInstance; // Global variable to store io instance
 
 const userController = {
-  initSocketIo: (io) => {
-    ioInstance = io;
-  },
+  
 
   createTicket: async (req, res) => {
     try {
@@ -170,61 +166,7 @@ const userController = {
     }
   },
 
-  createChat: async (req, res) => {
-    try {
-      const ticket = await ticketModel
-        .findById(req.params.id)
-        .select("assignedTo");
-      const agentId = ticket.assignedTo._id;
-      const userId = req.userId;
 
-      const existingChat = await chatsModel.findOne({ userId, agentId });
-
-      if (existingChat) {
-        return res.status(200).json(existingChat);
-      }
-
-      const newChat = new chatsModel({ userId, agentId });
-      await newChat.save();
-
-      ioInstance.emit("message", { type: "chatCreated", chatId: newChat._id });
-      return res.status(201).json(newChat);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
-    }
-  },
-
-  sendMessage: async (req, res) => {
-    try {
-      const message = req.body.message;
-      const sender = req.userId;
-      const chatId = req.params.id;
-
-      const chat = await chatsModel.findById(chatId);
-
-      if (!chat) {
-        return res.status(404).json({ error: "Chat not found" });
-      }
-
-      const newMessage = new messageModel({ sender, message, chatid: chatId });
-      await newMessage.save();
-
-      chat.message.push(newMessage);
-      await chat.save();
-
-      ioInstance.emit("message", {
-        type: "newMessage",
-        chatId: chatId,
-        message: newMessage.message,
-      });
-      //console.log("chat: " + chat.message[0])
-      return res.status(201).json({ chat: chat, Message: newMessage.message });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
-    }
-  },
 };
 //helper method to assigne agents based on category
 

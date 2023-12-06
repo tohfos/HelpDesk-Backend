@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const usersModel = require("./usersModel");
-const messageModel = require("./MessageModel");
+
 
 const chatSchema = new mongoose.Schema({
 
+    ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ticket', required: true },
     userId: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
@@ -12,7 +13,14 @@ const chatSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "userModel" 
         },
-    message:[messageModel.schema]
+    message:[{
+        sender:{type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        message: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        
+    }
+]
 
 }
 ,

@@ -3,16 +3,12 @@ const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 const chatsModel = require("../models/chatsModel")
-const messageModel = require("../models/MessageModel")
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
-let ioInstance; // Global variable to store io instance
 
 
 const AgentController = {
-  initSocketIo: (io) => {
-    ioInstance = io;
-  },
+ 
   getTicket: async (req, res) => {
     try {
       const ticket = await ticketModel.find({ assignedTo: req.userId });
@@ -105,40 +101,6 @@ const AgentController = {
   },
 
 
-  sendMessage: async (req,res)=>{
-    try {
-      const message = req.body.message;
-      const sender = req.userId;
-      const chatId = req.params.id;
-  
-      const chat = await chatsModel.findById(chatId);
-  
-      if (!chat) {
-        return res.status(404).json({ error: 'Chat not found' });
-      }
-  
-      const newMessage = new messageModel({ sender, message, chatid: chatId });
-      await newMessage.save();
-  
-      chat.message.push(newMessage);
-      await chat.save();
-  
-      // Emit a 'new message' event to the Socket.IO server
-      // const io = getIo(); // Get the Socket.IO server instance
-      // io.to(chatId).emit('chat message', newMessage);
-      
-      //console.log("chat: " + chat.message[0])
-      ioInstance.emit("message", {
-        type: "newMessage",
-        chatId: chatId,
-        message: newMessage.message,
-      });
-      return res.status(201).json({"chat":chat,"Message":newMessage.message});
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: error.message });
-    }
-  }
 
 };
 

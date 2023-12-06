@@ -14,27 +14,23 @@ const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
-const messagingRouter = require('./Routes/messgaingRoute/messagingRoute')
 const userController = require('./controller/userController')
 const AgentController = require('./controller/AgentController')
 const authenticateJWT = require('./Middleware/authenticateJWT');
+const chatRoutes = require('./Routes/chatRoutes')
+
+
+const PORT = process.env.PORT
+const app = express()
 
 // Socket.IO
 const http = require('http');
 const socketIO = require('socket.io');
-
-
-const NormalPORT = process.env.PORT; // Use a default port if not provided in the environment
-const MessagePORT = process.env.MESSAGE_PORT;
-
-const app = express();
-const messagingApiApp = express();
-const server = http.createServer(messagingApiApp); // Create an HTTP server
+const server = http.createServer(app); 
 const io = socketIO(server)
 
 
 app.use(express.json());
-messagingApiApp.use(express.json());
 app.use(cookieParser());
 app.use(logger);
 app.use(errorHandler);
@@ -44,11 +40,10 @@ app.use(bodyParser.json());
 // Routes
 app.use('/auth', authRouter);
 app.use(authenticateJWT);
-messagingApiApp.use(authenticateJWT);
-messagingApiApp.use('/api/chat/', messagingRouter);
 app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/admin/", adminRouter);
+app.use('/api/chats', chatRoutes(io));
 
 
 
@@ -62,36 +57,39 @@ const connectDB = async () => {
 
 connectDB();
 
-
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
 
 // Socket.io integration
 io.on('connection', (socket) => {
-    console.log('A user connected');
-    messagingApiApp.use('/api/chat/', messagingRouter);
-    // Handle events (e.g., messages)
-    socket.on('message', (data) => {
-      // Broadcast the message to all connected clients
-      io.emit('message', data);
-      console.log(data)
-    });
-  
-    // Handle disconnect event
-    socket.on('disconnect', () => {
-      console.log('User disconnected');
-    });
-  });
+  console.log('User connected:', socket.id);
 
-userController.initSocketIo(io);
-AgentController.initSocketIo(io);
+  // Join a room based on ticketId
+  socket.on('joinRoom', (data) => {
+    socket.join(data.roomName);
+    console.log(`User ${socket.id} joined room ${data.roomName}`);
+  });
+  socket.on('newMessage', (data) => {
+      const roomName = data.roomName;
+  
+      // Emit the new message only to the sender and receiver
+      io.to(socket.id).to(roomName).emit('newMessage', data.message);
+    });
+
+  // Leave a room when disconnected
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    socket.leaveAll(); // Leave all rooms
+  });
+});
 
 
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB');
-    app.listen(NormalPORT, () => console.log(`Server running on port ${NormalPORT}`));
+    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-    server.listen(MessagePORT, () => {
-        console.log(`Messaging API server is running on port ${MessagePORT}`);
-    });
 });
 
 mongoose.connection.on('error', err => {
