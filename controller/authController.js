@@ -1,8 +1,10 @@
 const usersModel = require("../models/usersModel");
+const UserPreferences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const nodemailer = require('nodemailer');
+
 
 //const userController = require('/userController');
 
@@ -118,6 +120,7 @@ const authRoutes = {
     return res.status(200).json({ accessToken });
   },
 
+
   refresh: (req, res) => {
     const cookies = req.cookies;
 
@@ -185,9 +188,29 @@ const authRoutes = {
     }
 
 
+
   },
 
+  // get theme from user prefrences
+  getTheme: async (req, res) => {
+    try {
+      // Find the document in the collection
+      const preferences = await UserPreferences.findOne();
+
+      if (!preferences) {
+        console.log('No user preferences found.');
+        return null;
+      }
+
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
 }
+
+
 function generateOTPWithExpiry() {
   const generatedOTP = Math.random().toString(10).substr(2, 4); // Generate a new OTP
 
