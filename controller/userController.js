@@ -1,4 +1,3 @@
-const User = require("../models/usersModel");
 const bcrypt = require("bcrypt");
 const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
@@ -7,18 +6,19 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
+const Queue = require("../queue");
 
 const userController = {
+  
 
     createTicket: async (req,res)=>{
         try{
           const category=req.body.ticketCategory
           if(category!="others"){
-          const Agent_id= await assignAgent(category);
             const ticket = new ticketModel({
             
             createdBy: req.userId,
-            assignedTo:Agent_id,
+            // assignedTo:Agent_id,
             ticketCategory: category,
             SubCategory:req.body.SubCategory,
             priority:req.body.priority,
@@ -28,6 +28,8 @@ const userController = {
           });
         
             const newticket=await ticket.save();
+            Queue.addtoQ(newticket);
+            Queue.assigneAgent();
             return res.status(201).json(newticket);
 
         }else{
@@ -78,7 +80,7 @@ const userController = {
 
       setPassword:async(req,res)=>{
         try {
-          const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+          const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
           console.log(req.userId)
             const user = usersModel.findByIdAndUpdate(
             req.userId,
@@ -176,20 +178,27 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  resetPassword: async (req,res)=>{
+   const oldpass =req.body.oldpass
+   const newpass =req.body.newpass
+   const user=  await usersModel.findById(req.userId)
+   const match = await bcrypt.compare(oldpass, user.Password);
+   if (!match) return res.status(401).json({ message: "Wrong Password" });
+   user.Password=await bcrypt.hash(newpass,10)
+   user.firstTime=false
+
+   await user.save();
+
+    return res.status(200).json({message:"password resetten "})
+  }
 };
 //helper method to assigne agents based on category
 
-
-const assignAgent = async (category) => {
-  try {
-    const agents = await usersModel
-      .find({ responsibility: category })
-      .select("_id");
-    return agents[0]._id;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
+//helper 
 
 
 module.exports = userController;
+
+
+
+

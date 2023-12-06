@@ -9,6 +9,7 @@ const corsOptions = require('./config/corsOptions')
 const bodyParser = require("body-parser");
 // const nodemailer = require('nodemailer');
 //const auth = require('./Middleware/authenticationMiddleware')
+const backupMongoDB = require("./backup");
 
 //const AuthRouter = require('./Routes/Auth')
 const userRouter = require("./Routes/userRoutes");
@@ -68,6 +69,7 @@ connectDB()
 
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB')
+    backupMongoDB();
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 })
 app.use(errorHandler)
