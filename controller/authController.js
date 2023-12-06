@@ -160,7 +160,7 @@ try {
   }  
   if (req.body.otp==req.params.otp)
 
-  res.status(200).(); // Compare entered OTP with the generated OTP
+  res.status(200); // Compare entered OTP with the generated OTP
 
 } catch (error) {
   res.status(500).json({ message: error.message });

@@ -11,11 +11,22 @@ const chatRoutes = (io) => {
   router.get('/:ticketId', async (req, res) => {
     try {
       const ticketId = req.params.ticketId;
-      const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
-      if(!chats){
-        res.status(401).json({ message: 'no chat found' });
-      }
-      if(req.userId != chats.userId || eq.userId != chats.agentId){
+      const ticket = await ticketModel.findById(ticketId).select("createdBy assignedTo")
+
+      const user = ticket.createdBy
+      const agent = ticket.assignedTo
+
+      const chats = await chatsModel.findOneAndUpdate(
+        { ticketId: ticketId, userId: user, agentId: agent },
+        { new: true, upsert: true }
+      ).populate('message.sender.UserName message.receiverId.UserName');
+
+      // const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
+      // if(!chats){
+      //   res.status(401).json({ message: 'no chat found' });
+      // }
+      
+      if(req.userId != chats.userId || req.userId != chats.agentId){
         return res.status(500).json({ error: 'not your chat' });
       }
       res.json(chats);
