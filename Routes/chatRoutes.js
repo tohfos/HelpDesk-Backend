@@ -67,7 +67,7 @@ const chatRoutes = (io) => {
       ).populate('message.sender.UserName message.receiverId.UserName');
 
       const roomName = `Chat_${chat._id}`;
-      io.to(roomName).emit('newMessage', newChatMessage);
+      req.io.to(roomName).emit('newMessage', newChatMessage);
       
       res.json(chat);
     } catch (error) {

@@ -57,11 +57,6 @@ const connectDB = async () => {
 
 connectDB();
 
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
 // Socket.io integration
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -83,6 +78,11 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
     socket.leaveAll(); // Leave all rooms
   });
+});
+
+app.use((req, res, next) => {
+  req.io = io;
+  next();
 });
 
 
