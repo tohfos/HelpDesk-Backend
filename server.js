@@ -9,6 +9,10 @@ const corsOptions = require('./config/corsOptions');
 const bodyParser = require("body-parser");
 // const nodemailer = require('nodemailer');
 
+//const auth = require('./Middleware/authenticationMiddleware')
+const backupMongoDB = require("./backup");
+
+
 // Routes
 const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
@@ -37,6 +41,7 @@ app.use(errorHandler);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
+
 // Routes
 app.use('/auth', authRouter);
 app.use(authenticateJWT);
@@ -47,12 +52,18 @@ app.use('/api/chats', chatRoutes(io));
 
 
 
+
 const connectDB = async () => {
     try {
         await mongoose.connect(process.env.DB_URL);
     } catch (err) {
         console.log(err);
     }
+
+}
+
+
+
 };
 
 connectDB();
@@ -87,10 +98,13 @@ app.use((req, res, next) => {
 
 
 mongoose.connection.once('open', () => {
+
     console.log('Connected to MongoDB');
+    backupMongoDB();
     server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
+app.use(errorHandler)
 
 mongoose.connection.on('error', err => {
     console.log(err);

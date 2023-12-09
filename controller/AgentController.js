@@ -2,7 +2,9 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+
 const chatsModel = require("../models/chatsModel")
+
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
@@ -66,8 +68,15 @@ const AgentController = {
               update,
               { new: true }
             );
+            const updatedUser = await usersModel.findOneAndUpdate(
+              { _id: req.userId },
+              { $pull: { assignedTicket: ticket.id } },
+              { new: true }
+          );
+          console.log(updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
+            assigneAgent();
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -153,6 +162,80 @@ const sendEmailWithHerf = async (subject, body, toEmail) => {
     console.error('Error sending email:', error);
   }
 };
+const assignHelper = async(queue) =>{
+  if (queue.size()!=0){
+    const ticket = queue.top();
+    const agent = await usersModel.findOne({ Highresponsibility: ticket.ticketCategory })
+    const agent2 = await usersModel.findOne({ Midresponsibility: ticket.ticketCategory })
+    const agent3 = await usersModel.findOne({ Lowresponsibility: ticket.ticketCategory })
+
+    const arr=agent.assignedTicket|| [];
+    const arr2=agent2.assignedTicket|| [];
+    const arr3=agent3.assignedTicket|| [];
+  
+    if(arr.length<5){
+      arr.push(ticket)
+       await usersModel.findByIdAndUpdate(agent.id,
+         {assignedTicket:arr},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
+        queue.pop();
+    }
+    else if(arr2.length<5){
+      arr2.push(ticket);
+       await usersModel.findByIdAndUpdate(agent2.id,
+         {assignedTicket:arr2},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
+        queue.pop();
+
+    }
+    else if(arr3.length<5){
+      arr3.push(ticket);
+       await usersModel.findByIdAndUpdate(agent3.id,
+         {assignedTicket:arr3},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
+        queue.pop();
+    }
+}
+}
+//-------
+ const assigneAgent =async () => {
+  try {
+    assignHelper(High_priority);
+    assignHelper(Medium_priority);
+    assignHelper(Low_priority);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+   const addtoQ =async (ticket) => {
+    // console.log(ticket.priority);
+    switch (ticket.priority) {
+      case "High":
+        
+        High_priority.add(ticket);
+        break;
+      case "Medium":
+        Medium_priority.add(ticket);
+        break;
+      case "Low":
+        Low_priority.add(ticket);
+        break;
+      default:
+        // Handle any other cases here
+        break;
+    }
+
+
+
+
+
+
+
+  }
+
 
 
 module.exports = AgentController;
