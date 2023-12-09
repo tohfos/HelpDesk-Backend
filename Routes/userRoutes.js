@@ -14,8 +14,4 @@ router.get('/KnowledgeBase/:Category',authorizationJWT(['User']), userController
 router.get('/KnowledgeBase/:Category/:SubCategory',authorizationJWT(['User']), userController.filterBySubCategory);
 
 
-
-
-
-
 module.exports = router;

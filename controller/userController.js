@@ -3,16 +3,13 @@ const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
 const FaqModel = require("../models/FaqModel");
 const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
-
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 const Queue = require("../queue");
 
-
 const userController = {
   
-
 
     createTicket: async (req,res)=>{
         try{
@@ -42,8 +39,13 @@ const userController = {
             return res.status(201).json(newchat);
         }
 
+      }
+        catch(e){
+            return res.status(500).json({ message: e.message });
+        }
+    },
+  
 
- 
 
 
       rateTicket: async(req,res)=>{
@@ -176,7 +178,6 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
-
   resetPassword: async (req,res)=>{
    const oldpass =req.body.oldpass
    const newpass =req.body.newpass
@@ -194,13 +195,6 @@ const userController = {
 //helper method to assigne agents based on category
 
 //helper 
-
-
-
-};
-//helper method to assigne agents based on category
-
-
 
 
 module.exports = userController;

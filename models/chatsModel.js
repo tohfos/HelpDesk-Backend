@@ -4,7 +4,6 @@ const usersModel = require("./usersModel");
 
 const chatSchema = new mongoose.Schema({
 
-    ticketId: { type: mongoose.Schema.Types.ObjectId, ref: 'Ticket', required: true },
     userId: { 
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
@@ -14,13 +13,9 @@ const chatSchema = new mongoose.Schema({
         ref: "userModel" 
         },
     message:[{
-        sender:{type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        message: { type: String, required: true },
-        timestamp: { type: Date, default: Date.now },
-        
-    }
-]
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "message"
+    }]
 
 }
 ,
