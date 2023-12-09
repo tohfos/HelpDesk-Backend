@@ -3,9 +3,14 @@ const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 
+const chatsModel = require("../models/chatsModel")
+
+
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
+
 const AgentController = {
+ 
   getTicket: async (req, res) => {
     try {
       const ticket = await ticketModel.find({ assignedTo: req.userId });
@@ -103,6 +108,9 @@ const AgentController = {
       return res.status(400).json(error.message);
     }
   },
+
+
+
 };
 
 
