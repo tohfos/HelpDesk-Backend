@@ -30,8 +30,14 @@ const app = express()
 // Socket.IO
 const http = require('http');
 const socketIO = require('socket.io');
-const server = http.createServer(app); 
-const io = socketIO(server)
+const server = http.createServer(app);
+// const io = socketIO(server)
+const io = socketIO(server, {
+  cors: {
+    origin: 'http://localhost:3001',
+    methods: ['GET', 'POST'],
+  }
+});
 
 
 app.use(express.json());
@@ -54,36 +60,27 @@ app.use('/api/chats', chatRoutes(io));
 
 
 const connectDB = async () => {
-    try {
-        await mongoose.connect(process.env.DB_URL);
-    } catch (err) {
-        console.log(err);
-    }
+  try {
+    await mongoose.connect(process.env.DB_URL);
+  } catch (err) {
+    console.log(err);
+  }
 
 }
 
 
 connectDB();
 
-// Socket.io integration
-
-
-app.use((req, res, next) => {
-  req.io = io;
-  next();
-});
-
-
 mongoose.connection.once('open', () => {
 
-    console.log('Connected to MongoDB');
-    backupMongoDB();
-    server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  console.log('Connected to MongoDB');
+  backupMongoDB();
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
 app.use(errorHandler)
 
 mongoose.connection.on('error', err => {
-    console.log(err);
-    logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log');
+  console.log(err);
+  logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log');
 });
