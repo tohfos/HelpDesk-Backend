@@ -66,27 +66,7 @@ const connectDB = async () => {
 connectDB();
 
 // Socket.io integration
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
 
-  // Join a room based on ticketId
-  socket.on('joinRoom', (data) => {
-    socket.join(data.roomName);
-    console.log(`User ${socket.id} joined room ${data.roomName}`);
-  });
-  socket.on('newMessage', (data) => {
-      const roomName = data.roomName;
-  
-      // Emit the new message only to the sender and receiver
-      io.to(socket.id).to(roomName).emit('newMessage', data.message);
-    });
-
-  // Leave a room when disconnected
-  socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
-    socket.leaveAll(); // Leave all rooms
-  });
-});
 
 app.use((req, res, next) => {
   req.io = io;
