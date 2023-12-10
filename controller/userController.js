@@ -3,16 +3,13 @@ const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
 const FaqModel = require("../models/FaqModel");
 const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
-
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 const Queue = require("../queue");
 
-
 const userController = {
   
-
 
     createTicket: async (req,res)=>{
         try{
@@ -33,6 +30,7 @@ const userController = {
             const newticket=await ticket.save();
             Queue.addtoQ(newticket);
             Queue.assigneAgent();
+            sendEmail("Ticket Created",`You Have Created Ticket ${req.body.title} ticketCategory: ${category}` , req.email )
             return res.status(201).json(newticket);
 
         }else{
@@ -42,8 +40,13 @@ const userController = {
             return res.status(201).json(newchat);
         }
 
+      }
+        catch(e){
+            return res.status(500).json({ message: e.message });
+        }
+    },
+  
 
- 
 
 
       rateTicket: async(req,res)=>{
@@ -68,6 +71,8 @@ const userController = {
             update,
             { new: true }
           );
+          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+
           return res.status(200).json({message: "ticket rated successfully"});
           
         } catch (error) {
@@ -176,7 +181,6 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
-
   resetPassword: async (req,res)=>{
    const oldpass =req.body.oldpass
    const newpass =req.body.newpass
@@ -194,17 +198,30 @@ const userController = {
 //helper method to assigne agents based on category
 
 //helper 
+const sendEmail = async (subject, body ,toEmail) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // e.g., 'gmail'
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASS,
+    },
+  });
+  const mailOptions = {
+    to: toEmail,
+    subject: subject,
+    text: body,
+  };
+  try {
+    
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+  
 
-
-
-};
-//helper method to assigne agents based on category
-
+}
 
 
 
 module.exports = userController;
-
-
-
-

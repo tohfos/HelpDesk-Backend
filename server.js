@@ -63,9 +63,6 @@ const connectDB = async () => {
 }
 
 
-
-};
-
 connectDB();
 
 // Socket.io integration
