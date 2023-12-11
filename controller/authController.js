@@ -209,6 +209,9 @@ function sendOTPByEmail(email, otp, expiry) {
 
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
 
   const mailOptions = {

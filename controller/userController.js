@@ -7,18 +7,49 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 const Queue = require("../queue");
+const nodemailer = require('nodemailer');
+
 
 const userController = {
   
 
     createTicket: async (req,res)=>{
-        try{
+      //   try{
+      //     const category=req.body.ticketCategory
+      //     if(category!="others"){
+      //       const ticket = new ticketModel({
+            
+      //       createdBy: req.userId,
+      //       // assignedTo:Agent_id,
+      //       ticketCategory: category,
+      //       SubCategory:req.body.SubCategory,
+      //       priority:req.body.priority,
+      //       status:"Open",
+      //       title:req.body.title,
+      //       description:req.body.description
+      //     });
+        
+      //       const newticket=await ticket.save();
+      //       // Queue.addtoQ(newticket);
+      //       // Queue.assigneAgent();
+      //       return res.status(201).json(newticket);
+
+      //   }else{
+      //     const chat = new chatsModel({userId:req.userId})
+      //     const newchat=await chat.save();
+      //       console.log(newchat);
+      //       return res.status(201).json(newchat);
+      //   }
+
+      // }
+       try{
           const category=req.body.ticketCategory
           if(category!="others"){
+          const Agent_id= await assignAgent(category);
             const ticket = new ticketModel({
             
             createdBy: req.userId,
-            // assignedTo:Agent_id,
+            assignedTo:Agent_id,
             ticketCategory: category,
             SubCategory:req.body.SubCategory,
             priority:req.body.priority,
@@ -26,10 +57,10 @@ const userController = {
             title:req.body.title,
             description:req.body.description
           });
-        
-            const newticket=await ticket.save();
-            Queue.addtoQ(newticket);
-            Queue.assigneAgent();
+          const newticket=await ticket.save();
+
+          sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
             return res.status(201).json(newticket);
 
         }else{
@@ -45,9 +76,6 @@ const userController = {
         }
     },
   
-
-
-
       rateTicket: async(req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id);
@@ -111,6 +139,21 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  getOneTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
 
   getProfile: async (req, res) => {
     try {
@@ -192,9 +235,42 @@ const userController = {
     return res.status(200).json({message:"password resetten "})
   }
 };
-//helper method to assigne agents based on category
+const assignAgent = async (category) => {
+  try {
+      const agents = await usersModel.find({ Highresponsibility: category }).select('_id');
+      return agents[0]._id;
+  } catch (error) {
+      throw new Error(error.message);
+  }
+};
 
-//helper 
+const sendEmail = async (subject, body ,toEmail) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // e.g., 'gmail'
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+  const mailOptions = {
+    to: toEmail,
+    subject: subject,
+    text: body,
+  };
+  try {
+    
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+  
+
+}
+
 
 
 module.exports = userController;

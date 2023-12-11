@@ -14,6 +14,42 @@ const AgentController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  getOneTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+  communicate: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
+      console.log(ticket);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      if(ticket.status!="In Progress"){
+        return res
+          .status(404)
+          .json({ message: "ticket is not in progress " }); 
+      }
+      sendEmail(ticket.title,req.body.body,creatorEmail.profile.email);
+      return res.status(200).json({message:"email sent"})
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
 
     startTicket:async (req,res)=>{
         try {
@@ -32,8 +68,8 @@ const AgentController = {
 
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             //console.log("creatorEmail",creatorEmail.profile.email)
-
-            sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
+              console.log(req.user)
+            sendEmail("Ticket started" ,`Agent: ${req.user} started testing a ticket ` ,creatorEmail.profile.email);
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -45,8 +81,6 @@ const AgentController = {
             return res.status(500).json({ message: error.message });
           }
     },
-
-    
 
     solveTicket:async (req,res)=>{
         try {
@@ -63,15 +97,15 @@ const AgentController = {
               update,
               { new: true }
             );
-            const updatedUser = await usersModel.findOneAndUpdate(
-              { _id: req.userId },
-              { $pull: { assignedTicket: ticket.id } },
-              { new: true }
-          );
-          console.log(updatedUser)
+          //   const updatedUser = await usersModel.findOneAndUpdate(
+          //     { _id: req.userId },
+          //     { $pull: { assignedTicket: ticket.id } },
+          //     { new: true }
+          // );
+          // console.log(updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
-            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
-            assigneAgent();
+            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
+            // assigneAgent();
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -114,6 +148,9 @@ const sendEmail = async (subject, body ,toEmail) => {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   const mailOptions = {
     to: toEmail,
@@ -132,16 +169,19 @@ const sendEmail = async (subject, body ,toEmail) => {
 }
 
 
-const sendEmailWithHerf = async (subject, body, toEmail) => {
+const sendEmailWithHerf = async (subject, body, toEmail,id) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail', // e.g., 'gmail'
     auth: {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   // Add HTML markup for the hyperlink
-  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/get">Click here to rate the ticket</a>`;
+  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/rate/${id}">Click here to rate the ticket</a>`;
   const mailOptions = {
     to: toEmail,
     subject: subject,
