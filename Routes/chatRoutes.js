@@ -51,54 +51,49 @@ const chatRoutes = (io) => {
   });
 
   // Create a new chat message
-  router.post('/', async (req, res) => {
+  router.post('/:ticketId', async (req, res) => {
 
     try {
-      // const ticket = await ticketModel.findById(req.params.ticketId).select("createdBy assignedTo");
+      const ticket = await ticketModel.findById(req.params.ticketId).select("createdBy assignedTo");
 
-      // if (!ticket) {
-      //   return res.status(404).json({ message: 'Ticket not found' });
-      // }
+      if (!ticket) {
+        return res.status(404).json({ message: 'Ticket not found' });
+      }
 
-      // if(req.userId != ticket.createdBy || req.userId != ticket.assignedTo){
-      //   return res.status(500).json({ error: 'not your chat' });
-      // }
+      if(req.userId != ticket.createdBy || req.userId != ticket.assignedTo){
+        return res.status(500).json({ error: 'not your chat' });
+      }
 
-      // const user = ticket.createdBy;
-      // const agent = ticket.assignedTo;
-      // const sender = req.userId;
-      // let receiverId = null;
+      const user = ticket.createdBy;
+      const agent = ticket.assignedTo;
+      const sender = req.userId;
+      let receiverId = null;
 
-      // if (req.role === "User") {
-      //   receiverId = agent;
-      // } else {
-      //   receiverId = user;
-      // }
+      if (req.role === "User") {
+        receiverId = agent;
+      } else {
+        receiverId = user;
+      }
 
-      // const newChatMessage = {
-      //   sender: req.userId,
-      //   receiverId: receiverId,
-      //   message: req.body.messages,
-      // };
+      const newChatMessage = {
+        senderId: req.userId,
+        receiverId: receiverId,
+        message: req.body.messages,
+      };
       //console.log(newChatMessage)
 
-      // const chat = await chatsModel.findOneAndUpdate(
-      //   { ticketId: ticket._id, userId: user, agentId: agent },
-      //   { $push: { "message": newChatMessage } },
-      //   { new: true, upsert: true }
-      // ).populate('message.sender.UserName message.receiverId.UserName');
+      const chat = await chatsModel.findOneAndUpdate(
+        { ticketId: ticket._id, userId: user, agentId: agent },
+        { $push: { "message": newChatMessage } },
+        { new: true, upsert: true }
+      ).populate('message.sender.UserName message.receiverId.UserName');
 
       // io.to(roomName).emit('newMessage', req.body.message);
-
-
       // io.emit('newMessage', req.body.message);
-
       // broadcast the message to the sender and receiver
-
       // io.to('1234').emit('newMessage', req.body.message);
 
-
-      // res.json(req.body.message);
+      res.status(200).json({ message: 'Message saved' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
