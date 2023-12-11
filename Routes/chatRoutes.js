@@ -11,17 +11,18 @@ const chatRoutes = (io) => {
   io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
-    // Join a room based on ticketId
     socket.on('joinRoom', (data) => {
-      socket.join(data.roomName);
-      console.log(`User ${socket.id} joined room ${data.roomName}`);
+      socket.join(data.RoomId);
+      console.log(`User ${socket.id} joined room ${data.RoomId}`);
+      socket.emit('Welcome', `Hello ${socket.id}! You joined room ${data.RoomId}`);
+      socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
     });
-    socket.on('newMessage', (data) => {
-      const roomName = data.roomName;
 
-      // Emit the new message only to the sender and receiver
-      io.to(socket.id).to(roomName).emit('newMessage', data.message);
-    });
+    socket.on('newMessage', (data) => {
+      console.log(data);
+      socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+    }
+    );
 
     // Leave a room when disconnected
     socket.on('disconnect', () => {
@@ -87,10 +88,17 @@ const chatRoutes = (io) => {
       //   { new: true, upsert: true }
       // ).populate('message.sender.UserName message.receiverId.UserName');
 
-      const roomName = '1234'//`Chat_${chat._id}`;
-      req.io.to(roomName).emit('newMessage', req.body.message);
+      // io.to(roomName).emit('newMessage', req.body.message);
 
-      res.json("success");
+
+      // io.emit('newMessage', req.body.message);
+
+      // broadcast the message to the sender and receiver
+
+      // io.to('1234').emit('newMessage', req.body.message);
+
+
+      // res.json(req.body.message);
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
