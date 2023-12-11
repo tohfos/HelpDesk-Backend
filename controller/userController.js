@@ -105,6 +105,7 @@ const userController = {
         }
       },
 
+
       setPassword:async(req,res)=>{
         try {
           const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
@@ -123,7 +124,6 @@ const userController = {
         
     },
 
-    //helper method to assigne agents based on category
 
   getTicket: async (req, res) => {
     try {
