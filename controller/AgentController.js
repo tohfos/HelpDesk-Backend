@@ -123,12 +123,11 @@ const AgentController = {
 
   addWorkFlow: async (req, res) => {
     try {
-      const { Category, SubCategory, Question, Answer } = req.body;
+      const { Category, SubCategory, Description } = req.body;
       const newKnowledge = new knowledgeBasedModel({
         Category,
         SubCategory,
-        Question,
-        Answer,
+        Description
       });
       await newKnowledge.save();
       return res

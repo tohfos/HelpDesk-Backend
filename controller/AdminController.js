@@ -1,3 +1,4 @@
+
 const User = require('../models/usersModel')
 const UserPrefrences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
@@ -45,19 +46,21 @@ const AdminController = {
         }
     },
     AddQuestionsToFAQ: async (req, res) => {
-        try {
-            const { Question, Answer } = req.body;
-            const newQuestion = new FaqModel({
-                Question,
-                Answer,
-            });
-            await newQuestion.save();
-            res.status(201).json({ message: "Question added successfully" });
-        } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
-        }
-    },
+    try {
+      const { Category, SubCategory, Question, Answer } = req.body;
+      const newQuestion = new FaqModel({
+        Category,
+        SubCategory,
+        Question,
+        Answer,
+      });
+      await newQuestion.save();
+      res.status(201).json({ message: "Question added successfully" });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
 
     ChangeTheme: async (req, res) => {
         try {
@@ -138,3 +141,4 @@ function generateVerificationToken() {
     });
 }
 module.exports = AdminController;
+
