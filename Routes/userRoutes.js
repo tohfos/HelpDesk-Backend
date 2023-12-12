@@ -6,6 +6,7 @@ const authorizationJWT = require("../Middleware/authorizeJWT");
  router.put('/resetPassword', authorizationJWT(['User']), userController.resetPassword);
 router.post('/create', authorizationJWT(['User']), userController.createTicket);
 router.get('/get', authorizationJWT(['User']), userController.getTicket);
+router.get('/getOne/:id', authorizationJWT(['User']), userController.getOneTicket);
 router.put('/rate/:id', authorizationJWT(['User']), userController.rateTicket);
 router.get('/profile',authorizationJWT(['User']), userController.getProfile);
 router.put('/updateProfile',authorizationJWT(['User']), userController.updateProfile);
