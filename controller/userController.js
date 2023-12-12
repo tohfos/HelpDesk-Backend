@@ -7,6 +7,12 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
+const { RandomForestClassifier } = require('Bob.joblib'); // Import the library used for your model
+
+
+const model = joblib.load('Bob.joblib')
+model.predict
+
 
 const userController = {
 
