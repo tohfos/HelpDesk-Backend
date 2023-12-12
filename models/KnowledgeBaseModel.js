@@ -40,6 +40,14 @@ const knowledgeBasedSchema = new mongoose.Schema(
           `${props.value} is not a valid sub-category for the selected category.`,
       },
     },
+    Question: {
+      type: String,
+      required: true,
+    },
+    Answer: {
+      type: String,
+      required: true,
+    },
     Description: {
       type: String,
       required: true,

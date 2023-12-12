@@ -213,7 +213,12 @@ const userController = {
       const knowledge = await KnowledgeBaseModel.find({
         Category: req.params.Category,
       });
-      return res.status(200).json(knowledge);
+      const filteredKnowledge = knowledge.map(entry => ({
+        Question: entry.Question,
+        Answer: entry.Answer,
+      }));
+      
+      return res.status(200).json(filteredKnowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
