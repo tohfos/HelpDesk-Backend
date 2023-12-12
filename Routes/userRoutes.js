@@ -13,6 +13,7 @@ router.put('/updateProfile',authorizationJWT(['User']), userController.updatePro
 router.get('/KnowledgeBase',authorizationJWT(['User']), userController.getFAQ);
 router.get('/KnowledgeBase/:Category',authorizationJWT(['User']), userController.filterByCategory);
 router.get('/KnowledgeBase/:Category/:SubCategory',authorizationJWT(['User']), userController.filterBySubCategory);
+router.get('/workflow/:Category/:SubCategory', authorizationJWT(['User']), userController.getAutomationAndWorkflow);
 
 
 
