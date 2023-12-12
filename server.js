@@ -43,7 +43,6 @@ const io = socketIO(server, {
 app.use(express.json());
 app.use(cookieParser());
 app.use(logger);
-app.use(errorHandler);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -82,4 +81,6 @@ app.use(errorHandler)
 mongoose.connection.on('error', err => {
   console.log(err);
   logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log');
+
 });
+
