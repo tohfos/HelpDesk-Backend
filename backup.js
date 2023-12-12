@@ -4,7 +4,7 @@ const cron = require('node-cron');
 const { MongoClient } = require('mongodb'); // Import MongoDB client
 
 const DB_NAME = 'HelpDesk';
-const ARCHIVE_PATH = path.join(__dirname, `${DB_NAME}.gzip`);
+const ARCHIVE_PATH = path.join(__dirname, 'backups', `backup${Date.now()}`);
 
 const mongoURI = process.env.DB_URL; // Update with your MongoDB URI
 
@@ -14,14 +14,14 @@ async function backupMongoDB() {
   try {
     const client = await MongoClient.connect(mongoURI, { useNewUrlParser: true });
     const db = client.db(DB_NAME);
-    const collection = db.collection('users'); // Replace with your collection name
+    // const collection = db.collection('users'); // Replace with your collection name
 
-    const count = await collection.countDocuments();
-    console.log(`Number of documents to be backed up: ${count}`);
+    // const count = await collection.countDocuments();
+    // console.log(`Number of documents to be backed up: ${count}`);
 
     const child = spawn('mongodump', [
-      `--db=${DB_NAME}`,
-      `--archive=${ARCHIVE_PATH}`,
+      `--uri=${mongoURI}`,
+      `--out=${ARCHIVE_PATH}`,
       '--gzip',
     ]);
 
