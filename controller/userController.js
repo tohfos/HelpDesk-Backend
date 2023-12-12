@@ -7,6 +7,7 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
 const Queue = require("../queue");
+const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 
 
@@ -58,7 +59,10 @@ const userController = {
             description:req.body.description
           });
           const newticket=await ticket.save();
-
+          
+          await addtoQ(newticket);
+          await assigneAgent();
+          
           sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
 
             return res.status(201).json(newticket);
@@ -270,6 +274,97 @@ const sendEmail = async (subject, body ,toEmail) => {
   
 
 }
+
+
+const assignHelper = async(queue) =>{
+  if (queue.getSize() != 0){
+    const ticket = await queue.getTopTicket();
+    const actualTicket = await ticketModel.findById(ticket._id)
+    // console.log('ticket', actualTicket)
+    // console.log("ticket category", actualTicket.ticketCategory)
+    const agent = await usersModel.findOne({ Highresponsibility: actualTicket.ticketCategory })
+    console.log("agent1", agent)
+    const agent2 = await usersModel.findOne({ Midresponsibility: actualTicket.ticketCategory })
+    console.log("agent2", agent2)
+    const agent3 = await usersModel.findOne({ Lowresponsibility: actualTicket.ticketCategory })
+    console.log("agent3", agent3)
+
+    const arr=agent.assignedTicket|| [];
+    const arr2=agent2.assignedTicket|| [];
+    const arr3=agent3.assignedTicket|| [];
+  
+    if(arr.length<5){
+      arr.push(actualTicket)
+       await usersModel.findByIdAndUpdate(agent.id,
+         {assignedTicket:arr},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent},{new:true}) 
+        await queue.popTicket();
+    }
+    
+        else if(arr2.length<5){
+          arr2.push(actualTicket);
+          await usersModel.findByIdAndUpdate(agent2.id,
+            {assignedTicket:arr2},
+            {new:true})
+            await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
+            await queue.popTicket();
+
+      }
+      else if(arr3.length<5){
+        arr3.push(actualTicket);
+        await usersModel.findByIdAndUpdate(agent3.id,
+          {assignedTicket:arr3},
+          {new:true})
+          await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent3},{new:true}) 
+          await queue.popTicket();
+      }
+  }
+    
+}
+
+//-------
+ const assigneAgent =async () => {
+  try {
+    const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+    const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+    const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    if (highQueue.getSize() > 0) await assignHelper(highQueue);
+    else if (highQueue.getSize() == 0 && medQueue.getSize() > 0) await assignHelper(medQueue);
+    else await assignHelper(lowQueue);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+const addtoQ =async (ticket) => {
+     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    // console.log(ticket.priority);
+    switch (ticket.priority) {
+      case "High":
+      await highQueue.addTicket(ticket);
+        break;
+      case "Medium":
+        await medQueue.addTicket(ticket);
+        break;
+      case "Low":
+        await lowQueue.addTicket(ticket);
+        break;
+      default:
+        // Handle any other cases here
+        break;
+    }
+
+
+
+
+
+
+
+  }
+
+
 
 
 

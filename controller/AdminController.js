@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 const FaqModel = require('../models/FaqModel')
+const queueModel = require('../models/queueModel')
 
 
 
@@ -87,6 +88,19 @@ const AdminController = {
             res.status(500).json({ message: error.message });
         }
     },
+
+    AddQueue : async (req, res) => {
+        try {
+            const { priorityOfQueue } = req.body
+    
+            const newQueue = new queueModel({ priorityOfQueue : priorityOfQueue});
+            await newQueue.save();
+            return res.status(201).json(newQueue);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    
 
 
 }

@@ -2,6 +2,7 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+const queueModel = require('../models/queueModel')
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
@@ -105,7 +106,7 @@ const AgentController = {
           // console.log(updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
-            // assigneAgent();
+            assigneAgent();
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -195,8 +196,8 @@ const sendEmailWithHerf = async (subject, body, toEmail,id) => {
   }
 };
 const assignHelper = async(queue) =>{
-  if (queue.size()!=0){
-    const ticket = queue.top();
+  if (queue.getSize() != 0){
+    const ticket = await queue.getTopTicket();
     const agent = await usersModel.findOne({ Highresponsibility: ticket.ticketCategory })
     const agent2 = await usersModel.findOne({ Midresponsibility: ticket.ticketCategory })
     const agent3 = await usersModel.findOne({ Lowresponsibility: ticket.ticketCategory })
@@ -211,49 +212,56 @@ const assignHelper = async(queue) =>{
          {assignedTicket:arr},
         {new:true})
         await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
-        queue.pop();
+        await queue.popTicket();
     }
-    else if(arr2.length<5){
-      arr2.push(ticket);
-       await usersModel.findByIdAndUpdate(agent2.id,
-         {assignedTicket:arr2},
-        {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
-        queue.pop();
+       else  if(arr2.length<5){
+          arr2.push(ticket);
+          await usersModel.findByIdAndUpdate(agent2.id,
+            {assignedTicket:arr2},
+            {new:true})
+            await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
+            await queue.popTicket();
 
-    }
-    else if(arr3.length<5){
-      arr3.push(ticket);
-       await usersModel.findByIdAndUpdate(agent3.id,
-         {assignedTicket:arr3},
-        {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
-        queue.pop();
-    }
+      }
+      else if(arr3.length<5){
+        arr3.push(ticket);
+        await usersModel.findByIdAndUpdate(agent3.id,
+          {assignedTicket:arr3},
+          {new:true})
+          await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
+          await queue.popTicket();
+      }
+  }
+    
 }
-}
+
 //-------
  const assigneAgent =async () => {
   try {
-    assignHelper(High_priority);
-    assignHelper(Medium_priority);
-    assignHelper(Low_priority);
+    const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+    const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+    const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    await assignHelper(highQueue);
+    await assignHelper(medQueue);
+    await assignHelper(lowQueue);
   } catch (error) {
     throw new Error(error.message);
   }
 }
-   const addtoQ =async (ticket) => {
+const addtoQ =async (ticket) => {
+     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
     // console.log(ticket.priority);
     switch (ticket.priority) {
       case "High":
-        
-        High_priority.add(ticket);
+      await highQueue.addTicket(ticket);
         break;
       case "Medium":
-        Medium_priority.add(ticket);
+        await medQueue.addTicket(ticket);
         break;
       case "Low":
-        Low_priority.add(ticket);
+        await lowQueue.addTicket(ticket);
         break;
       default:
         // Handle any other cases here
