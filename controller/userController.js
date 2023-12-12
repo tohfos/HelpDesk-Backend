@@ -10,7 +10,6 @@ const Queue = require("../queue");
 const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 
-
 const userController = {
   
 
@@ -58,12 +57,14 @@ const userController = {
             title:req.body.title,
             description:req.body.description
           });
+
           const newticket=await ticket.save();
           
           await addtoQ(newticket);
           await assigneAgent();
           
           sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
 
             return res.status(201).json(newticket);
 
@@ -80,6 +81,7 @@ const userController = {
         }
     },
   
+
       rateTicket: async(req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id);
@@ -102,6 +104,8 @@ const userController = {
             update,
             { new: true }
           );
+          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+
           return res.status(200).json({message: "ticket rated successfully"});
           
         } catch (error) {
@@ -280,14 +284,14 @@ const assignHelper = async(queue) =>{
   if (queue.getSize() != 0){
     const ticket = await queue.getTopTicket();
     const actualTicket = await ticketModel.findById(ticket._id)
-    // console.log('ticket', actualTicket)
+    //console.log('ticket', ticket)
     // console.log("ticket category", actualTicket.ticketCategory)
     const agent = await usersModel.findOne({ Highresponsibility: actualTicket.ticketCategory })
-    console.log("agent1", agent)
+    //console.log("agent1", agent)
     const agent2 = await usersModel.findOne({ Midresponsibility: actualTicket.ticketCategory })
-    console.log("agent2", agent2)
+   // console.log("agent2", agent2)
     const agent3 = await usersModel.findOne({ Lowresponsibility: actualTicket.ticketCategory })
-    console.log("agent3", agent3)
+   // console.log("agent3", agent3)
 
     const arr=agent.assignedTicket|| [];
     const arr2=agent2.assignedTicket|| [];
@@ -309,6 +313,7 @@ const assignHelper = async(queue) =>{
             {new:true})
             await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
             await queue.popTicket();
+
 
       }
       else if(arr3.length<5){
@@ -368,8 +373,5 @@ const addtoQ =async (ticket) => {
 
 
 
+
 module.exports = userController;
-
-
-
-
