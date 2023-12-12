@@ -10,7 +10,6 @@ const Queue = require("../queue");
 const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 
-
 const userController = {
   
 
@@ -58,12 +57,14 @@ const userController = {
             title:req.body.title,
             description:req.body.description
           });
+
           const newticket=await ticket.save();
           
           await addtoQ(newticket);
           await assigneAgent();
           
           sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
 
             return res.status(201).json(newticket);
 
@@ -80,6 +81,7 @@ const userController = {
         }
     },
   
+
       rateTicket: async(req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id);
@@ -102,6 +104,8 @@ const userController = {
             update,
             { new: true }
           );
+          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+
           return res.status(200).json({message: "ticket rated successfully"});
           
         } catch (error) {
@@ -310,6 +314,7 @@ const assignHelper = async(queue) =>{
             await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
             await queue.popTicket();
 
+
       }
       else if(arr3.length<5){
         arr3.push(actualTicket);
@@ -368,8 +373,5 @@ const addtoQ =async (ticket) => {
 
 
 
+
 module.exports = userController;
-
-
-
-
