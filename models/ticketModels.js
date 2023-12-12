@@ -78,8 +78,13 @@ const ticketSchema = new mongoose.Schema(
     type:Date,
     default:null,
     required:false
+  },
+  hasChat: {
+    type: Boolean,
+    default: false 
   }
   },
+  
   {
     timestamps: true,
   }

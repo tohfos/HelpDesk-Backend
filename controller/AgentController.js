@@ -98,12 +98,12 @@ const AgentController = {
               update,
               { new: true }
             );
-          //   const updatedUser = await usersModel.findOneAndUpdate(
-          //     { _id: req.userId },
-          //     { $pull: { assignedTicket: ticket.id } },
-          //     { new: true }
-          // );
-          // console.log(updatedUser)
+            const updatedUser = await usersModel.findOneAndUpdate(
+              { _id: req.userId },
+              { $pull: { assignedTicket: ticket.id } },
+              { new: true }
+          );
+            console.log(updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
             assigneAgent();

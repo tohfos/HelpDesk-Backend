@@ -11,7 +11,7 @@ const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 
 const userController = {
-  
+
 
     createTicket: async (req,res)=>{
       //   try{
@@ -42,38 +42,42 @@ const userController = {
       //   }
 
       // }
-       try{
+      try{
           const category=req.body.ticketCategory
-          if(category!="others"){
+
           const Agent_id= await assignAgent(category);
-            const ticket = new ticketModel({
-            
-            createdBy: req.userId,
-            assignedTo:Agent_id,
-            ticketCategory: category,
-            SubCategory:req.body.SubCategory,
-            priority:req.body.priority,
-            status:"Open",
-            title:req.body.title,
-            description:req.body.description
-          });
-
-          const newticket=await ticket.save();
           
-          await addtoQ(newticket);
-          await assigneAgent();
-          
-          sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+          const ticket = new ticketModel({
+          createdBy: req.userId,
+          assignedTo:Agent_id,
+          ticketCategory: category,
+          priority:req.body.priority,
+          status:"Open",
+          title:req.body.title,
+          description:req.body.description
+        });
 
-
-            return res.status(201).json(newticket);
-
+        if (category != "others"){
+          ticket.SubCategory = req.body.SubCategory;
         }else{
-          const chat = new chatsModel({userId:req.userId})
-          const newchat=await chat.save();
-            console.log(newchat);
-            return res.status(201).json(newchat);
+          const chat = new chatsModel({"ticketId" : ticket, "userId" : req.userId , "agentId" : Agent_id })
+          const newChat = await chat.save();
+
+          ticket.hasChat = true
+          console.log(newChat);
         }
+
+        const newticket= await ticket.save();
+        
+        await addtoQ(newticket);
+        await assigneAgent();
+        
+        sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
+        
+
+        return res.status(201).json(newticket);
+
 
       }
         catch(e){
@@ -104,8 +108,19 @@ const userController = {
             update,
             { new: true }
           );
-          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+          
+          if(req.body.rating < 5){
+            const chat = new chatsModel({"ticketId" : ticketupdate , "userId" : req.userId , "agentId" : ticket.assignedTo })
+            const newChat = await chat.save();
 
+            ticketupdate.hasChat = true
+            await ticketupdate.save()
+            sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title} their is Chat opend for you` , req.email )
+
+            return res.status(200).json({message: "ticket rated successfully" , "Chat" : newChat});
+          }
+
+          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
           return res.status(200).json({message: "ticket rated successfully"});
           
         } catch (error) {

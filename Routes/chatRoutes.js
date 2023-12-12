@@ -100,6 +100,25 @@ const chatRoutes = (io) => {
     }
   });
 
+//get all chats for specific user
+  router.get('/allChats', async (req,res) => {
+
+  const chats = await chatsModel.find({
+    $or: [
+      { userId: req.userId },
+      { agentId: req.userId }
+    ]
+  });
+
+  if(!chats){
+    return res.status(404).json({ message: "No chats found" });
+  }
+  
+
+
+  })
+
+
   return router;
 };
 
