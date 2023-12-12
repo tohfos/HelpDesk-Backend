@@ -1,8 +1,10 @@
 const usersModel = require("../models/usersModel");
+const UserPreferences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const nodemailer = require('nodemailer');
+
 
 //const userController = require('/userController');
 
@@ -21,7 +23,7 @@ const authRoutes = {
     if (!foundUser) {
       return res.status(401).json({ message: "No such user exists" });
     }
-    if( foundUser.verificationToken != null){
+    if (foundUser.verificationToken != null) {
       return res.status(400).json({ message: "your account isnot verified check ur inbox" });
     }
 
@@ -29,7 +31,7 @@ const authRoutes = {
 
     if (!match) return res.status(401).json({ message: "Wrong Password" });
 
-    if(foundUser.firstTime){
+    if (foundUser.firstTime) {
       const accessToken = jwt.sign(
         {
           UserInfo: {
@@ -42,13 +44,13 @@ const authRoutes = {
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "15m" }
       );
-  
+
       const refreshToken = jwt.sign(
         { UserName: foundUser.UserName },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: "7d" }
       );
-  
+
       // Create secure cookie with refresh token
       res.cookie("jwt", refreshToken, {
         httpOnly: true, //accessible only by web server
@@ -60,8 +62,8 @@ const authRoutes = {
     }
     const { generatedOTP, expiry } = generateOTPWithExpiry();
     sendOTPByEmail(foundUser.profile.email, generatedOTP, expiry);
-    foundUser.OTP.hashedOTP=await bcrypt.hash(generatedOTP,8)
-    foundUser.OTP.expiry=expiry
+    foundUser.OTP.hashedOTP = await bcrypt.hash(generatedOTP, 8)
+    foundUser.OTP.expiry = expiry
     await foundUser.save();
 
     // const isOTPValid = verifyOTP(OTP, generatedOTP, expiry);
@@ -69,25 +71,25 @@ const authRoutes = {
     //   return res.status(401).json({ message: "Invalid OTP" });
     // }
 
-   
-    res.json({message:"check your inbox for OTP",user_id:foundUser.id})
+
+    res.status(200).json({ message: "check your inbox for OTP", user_id: foundUser.id, resetPassword: false })
     //   res.json({ accessToken });
 
 
   }),
 
-   verifyOTP:async(req,res)=> {
+  verifyOTP: async (req, res) => {
     // Check if the OTP has expired
-    const foundUser= await usersModel.findById(req.params.id)
-    
+    const foundUser = await usersModel.findById(req.params.id)
+
     const match = await bcrypt.compare(req.body.otp, foundUser.OTP.hashedOTP);
 
     if (!match) return res.status(401).json({ message: "Wrong OTP" });
-    
+
     if (new Date() > foundUser.OTP.expiry) {
-      return res.status(500).json({message:"OTP expired "});
+      return res.status(500).json({ message: "OTP expired " });
     }
-    foundUser.OTP=null
+    foundUser.OTP = null
     await foundUser.save()
     const accessToken = jwt.sign(
       {
@@ -116,7 +118,8 @@ const authRoutes = {
       maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
     });
     return res.status(200).json({ accessToken });
-},
+  },
+
 
   refresh: (req, res) => {
     const cookies = req.cookies;
@@ -165,29 +168,49 @@ const authRoutes = {
   },
 
 
-  verify: async (req,res)=>{
+  verify: async (req, res) => {
     const { token } = req.query;
 
     try {
       const user = await usersModel.findByVerificationToken(token);
-  
+
       if (!user) {
         return res.status(404).send('Invalid token or user not found');
       }
-  
-      user.verificationToken = null; 
+
+      user.verificationToken = null;
       await user.save();
-  
+
       res.send('Account verified successfully');
     } catch (error) {
-      res.status(500).json({ message: "error.message "});
+      res.status(500).json({ message: "error.message " });
 
     }
-    
+
+
 
   },
- 
+
+  // get theme from user prefrences
+  getTheme: async (req, res) => {
+    try {
+      // Find the document in the collection
+      const preferences = await UserPreferences.findOne();
+
+      if (!preferences) {
+        console.log('No user preferences found.');
+        return null;
+      }
+
+      res.status(200).json(preferences);
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
 }
+
+
 function generateOTPWithExpiry() {
   const generatedOTP = Math.random().toString(10).substr(2, 4); // Generate a new OTP
 
