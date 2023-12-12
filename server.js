@@ -69,7 +69,7 @@ connectDB()
 
 mongoose.connection.once('open', () => {
     console.log('Connected to MongoDB')
-    backupMongoDB();
+    //backupMongoDB();
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 })
 app.use(errorHandler)
