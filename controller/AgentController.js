@@ -98,12 +98,12 @@ const AgentController = {
               update,
               { new: true }
             );
-          //   const updatedUser = await usersModel.findOneAndUpdate(
-          //     { _id: req.userId },
-          //     { $pull: { assignedTicket: ticket.id } },
-          //     { new: true }
-          // );
-          // console.log(updatedUser)
+            const updatedUser = await usersModel.findOneAndUpdate(
+              { _id: req.userId },
+              { $pull: { assignedTicket: ticket.id } },
+              { new: true }
+          );
+          console.log("after removing ticket",updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
             assigneAgent();
@@ -197,37 +197,39 @@ const sendEmailWithHerf = async (subject, body, toEmail,id) => {
 const assignHelper = async(queue) =>{
   if (queue.getSize() != 0){
     const ticket = await queue.getTopTicket();
-    const agent = await usersModel.findOne({ Highresponsibility: ticket.ticketCategory })
-    const agent2 = await usersModel.findOne({ Midresponsibility: ticket.ticketCategory })
-    const agent3 = await usersModel.findOne({ Lowresponsibility: ticket.ticketCategory })
+    const actualTicket = await ticketModel.findById(ticket._id)
+    const agent = await usersModel.findOne({ Highresponsibility: actualTicket.ticketCategory })
+    const agent2 = await usersModel.findOne({ Midresponsibility: actualTicket.ticketCategory })
+    const agent3 = await usersModel.findOne({ Lowresponsibility: actualTicket.ticketCategory })
 
     const arr=agent.assignedTicket|| [];
     const arr2=agent2.assignedTicket|| [];
     const arr3=agent3.assignedTicket|| [];
   
     if(arr.length<5){
-      arr.push(ticket)
+      arr.push(actualTicket)
        await usersModel.findByIdAndUpdate(agent.id,
          {assignedTicket:arr},
         {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
+        await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent},{new:true}) 
         await queue.popTicket();
     }
-       else  if(arr2.length<5){
-          arr2.push(ticket);
+    
+        else if(arr2.length<5){
+          arr2.push(actualTicket);
           await usersModel.findByIdAndUpdate(agent2.id,
             {assignedTicket:arr2},
             {new:true})
-            await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
+            await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
             await queue.popTicket();
 
       }
       else if(arr3.length<5){
-        arr3.push(ticket);
+        arr3.push(actualTicket);
         await usersModel.findByIdAndUpdate(agent3.id,
           {assignedTicket:arr3},
           {new:true})
-          await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
+          await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent3},{new:true}) 
           await queue.popTicket();
       }
   }
@@ -240,9 +242,9 @@ const assignHelper = async(queue) =>{
     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
-    await assignHelper(highQueue);
-    await assignHelper(medQueue);
-    await assignHelper(lowQueue);
+    if (highQueue.getSize() > 0) await assignHelper(highQueue);
+    else if (highQueue.getSize() == 0 && medQueue.getSize() > 0) await assignHelper(medQueue);
+    else await assignHelper(lowQueue);
   } catch (error) {
     throw new Error(error.message);
   }
