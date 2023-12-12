@@ -72,7 +72,7 @@ connectDB();
 mongoose.connection.once('open', () => {
 
   console.log('Connected to MongoDB');
-  backupMongoDB();
+  //backupMongoDB();
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
@@ -83,4 +83,5 @@ mongoose.connection.on('error', err => {
   logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log');
 
 });
+
 
