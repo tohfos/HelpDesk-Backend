@@ -2,6 +2,8 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+const queueModel = require('../models/queueModel')
+
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
 const AgentController = {
@@ -9,6 +11,42 @@ const AgentController = {
     try {
       const ticket = await ticketModel.find({ assignedTo: req.userId });
       return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+  getOneTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+  communicate: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
+      console.log(ticket);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      if(ticket.status!="In Progress"){
+        return res
+          .status(404)
+          .json({ message: "ticket is not in progress " }); 
+      }
+      sendEmail(ticket.title,req.body.body,creatorEmail.profile.email);
+      return res.status(200).json({message:"email sent"})
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -31,8 +69,8 @@ const AgentController = {
 
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             //console.log("creatorEmail",creatorEmail.profile.email)
-
-            sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
+              console.log(req.user)
+            sendEmail("Ticket started" ,`Agent: ${req.user} started testing a ticket ` ,creatorEmail.profile.email);
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -44,8 +82,6 @@ const AgentController = {
             return res.status(500).json({ message: error.message });
           }
     },
-
-    
 
     solveTicket:async (req,res)=>{
         try {
@@ -62,8 +98,15 @@ const AgentController = {
               update,
               { new: true }
             );
+            const updatedUser = await usersModel.findOneAndUpdate(
+              { _id: req.userId },
+              { $pull: { assignedTicket: ticket.id } },
+              { new: true }
+          );
+            console.log(updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
-            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
+            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
+            assigneAgent();
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -106,6 +149,9 @@ const sendEmail = async (subject, body ,toEmail) => {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   const mailOptions = {
     to: toEmail,
@@ -124,16 +170,19 @@ const sendEmail = async (subject, body ,toEmail) => {
 }
 
 
-const sendEmailWithHerf = async (subject, body, toEmail) => {
+const sendEmailWithHerf = async (subject, body, toEmail,id) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail', // e.g., 'gmail'
     auth: {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   // Add HTML markup for the hyperlink
-  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/get">Click here to rate the ticket</a>`;
+  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/rate/${id}">Click here to rate the ticket</a>`;
   const mailOptions = {
     to: toEmail,
     subject: subject,
@@ -146,6 +195,87 @@ const sendEmailWithHerf = async (subject, body, toEmail) => {
     console.error('Error sending email:', error);
   }
 };
+const assignHelper = async(queue) =>{
+  if (queue.getSize() != 0){
+    const ticket = await queue.getTopTicket();
+    const agent = await usersModel.findOne({ Highresponsibility: ticket.ticketCategory })
+    const agent2 = await usersModel.findOne({ Midresponsibility: ticket.ticketCategory })
+    const agent3 = await usersModel.findOne({ Lowresponsibility: ticket.ticketCategory })
+
+    const arr=agent.assignedTicket|| [];
+    const arr2=agent2.assignedTicket|| [];
+    const arr3=agent3.assignedTicket|| [];
+  
+    if(arr.length<5){
+      arr.push(ticket)
+       await usersModel.findByIdAndUpdate(agent.id,
+         {assignedTicket:arr},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
+        await queue.popTicket();
+    }
+       else  if(arr2.length<5){
+          arr2.push(ticket);
+          await usersModel.findByIdAndUpdate(agent2.id,
+            {assignedTicket:arr2},
+            {new:true})
+            await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
+            await queue.popTicket();
+
+      }
+      else if(arr3.length<5){
+        arr3.push(ticket);
+        await usersModel.findByIdAndUpdate(agent3.id,
+          {assignedTicket:arr3},
+          {new:true})
+          await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
+          await queue.popTicket();
+      }
+  }
+    
+}
+
+//-------
+ const assigneAgent =async () => {
+  try {
+    const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+    const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+    const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    await assignHelper(highQueue);
+    await assignHelper(medQueue);
+    await assignHelper(lowQueue);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
+const addtoQ =async (ticket) => {
+     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    // console.log(ticket.priority);
+    switch (ticket.priority) {
+      case "High":
+      await highQueue.addTicket(ticket);
+        break;
+      case "Medium":
+        await medQueue.addTicket(ticket);
+        break;
+      case "Low":
+        await lowQueue.addTicket(ticket);
+        break;
+      default:
+        // Handle any other cases here
+        break;
+    }
+
+
+
+
+
+
+
+  }
+
 
 
 module.exports = AgentController;

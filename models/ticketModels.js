@@ -26,8 +26,7 @@ const ticketSchema = new mongoose.Schema(
     },
     SubCategory: {
       type: String,
-      validate: {
-        validator: function (value) {
+        required: function (value) {
           if (this.ticketCategory === "Software") {
             return [
               "Operating System",
@@ -54,9 +53,7 @@ const ticketSchema = new mongoose.Schema(
             return true;
           }
         },
-        message: (props) =>
-          `${props.value} is not a valid sub-category for the selected category.`,
-      },
+       
     },
     title: {
       type: String,
@@ -81,8 +78,13 @@ const ticketSchema = new mongoose.Schema(
     type:Date,
     default:null,
     required:false
+  },
+  hasChat: {
+    type: Boolean,
+    default: false 
   }
   },
+  
   {
     timestamps: true,
   }

@@ -18,11 +18,21 @@ const userSchema = new mongoose.Schema(
         },
         Password: {
             type: String,
-            minLength: 8,
+            // minLength: 8,
             maxLength: 64,
             
             required: true
         },
+        OTP: {
+            hashedOTP: {
+              type: String,
+              default: null,
+            },
+            OTPExpiry: {
+              type: Date,
+              default: null,
+            },
+          },
         Role: {
             type: String,
             enum: ['User', 'Admin', 'Agent','Manager'],
@@ -33,20 +43,53 @@ const userSchema = new mongoose.Schema(
             default: null, // Set default as null initially
           },
 
-        tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
-
-        responsibility: {
-            type: String,
-            enum: ['Software', 'Hardware', 'Network'],
-            
-            required: function () {
-                return this.Role === 'Agent';
+        // tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
+        // responsibilities:{
+            Highresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
             },
-        },
+            Midresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
+            },
+            Lowresponsibility: {
+                type: String,
+                enum: ['Software', 'Hardware', 'Network'],
+                
+                required: function () {
+                    return this.Role === 'Agent';
+                },
+            },
+        
         firstTime: {
             type: Boolean,
             default: true 
           },
+          // Other parts of your schema remain unchanged
+
+assignedTicket: {
+    type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ticket"
+    }],
+    required: function () {
+        return this.Role === 'Agent';
+    },
+    default: [],
+    
+}
+
+        
+
     } // define attr
     ,
     {
