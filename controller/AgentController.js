@@ -2,6 +2,8 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+const { userEvents } = require('./userController');
+
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
 const AgentController = {
@@ -17,9 +19,11 @@ const AgentController = {
     startTicket:async (req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
+         
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
-            return res.status(500).json({ message: "you arenot assigned to that ticket " })
+          return res.status(500).json({ message: "you arenot assigned to that ticket " })
           }
           if(ticket.status=="Open"){
             const update = {status:"In Progress"};
@@ -33,6 +37,8 @@ const AgentController = {
             //console.log("creatorEmail",creatorEmail.profile.email)
 
             sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketCreated' , userId );//modification            
+
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -51,7 +57,7 @@ const AgentController = {
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
             return res.status(500).json({ message: "you are not assigned to that ticket " })
           }       
@@ -64,6 +70,7 @@ const AgentController = {
             );
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketSolved' , userId );//modification
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
