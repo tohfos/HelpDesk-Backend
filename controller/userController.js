@@ -1,4 +1,3 @@
-const User = require("../models/usersModel");
 const bcrypt = require("bcrypt");
 const ticketModel = require("../models/ticketModels");
 const usersModel = require("../models/usersModel");
@@ -7,6 +6,10 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel")
+const Queue = require("../queue");
+const queueModel = require('../models/queueModel')
+const nodemailer = require('nodemailer');
+
 const { EventEmitter } = require('events');// modification
 const userEvents = new EventEmitter();// modification
 
@@ -36,9 +39,38 @@ userEvents.on('ticketCreated', (userId) => {
   })
 })
 const userController = {
+  
 
     createTicket: async (req,res)=>{
-        try{
+      //   try{
+      //     const category=req.body.ticketCategory
+      //     if(category!="others"){
+      //       const ticket = new ticketModel({
+            
+      //       createdBy: req.userId,
+      //       // assignedTo:Agent_id,
+      //       ticketCategory: category,
+      //       SubCategory:req.body.SubCategory,
+      //       priority:req.body.priority,
+      //       status:"Open",
+      //       title:req.body.title,
+      //       description:req.body.description
+      //     });
+        
+      //       const newticket=await ticket.save();
+      //       // Queue.addtoQ(newticket);
+      //       // Queue.assigneAgent();
+      //       return res.status(201).json(newticket);
+
+      //   }else{
+      //     const chat = new chatsModel({userId:req.userId})
+      //     const newchat=await chat.save();
+      //       console.log(newchat);
+      //       return res.status(201).json(newchat);
+      //   }
+
+      // }
+       try{
           const category=req.body.ticketCategory
           if(category!="others"){
           const Agent_id= await assignAgent(category);
@@ -53,8 +85,15 @@ const userController = {
             title:req.body.title,
             description:req.body.description
           });
-        
-            const newticket=await ticket.save();
+
+          const newticket=await ticket.save();
+          
+          await addtoQ(newticket);
+          await assigneAgent();
+          
+          sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
+
             return res.status(201).json(newticket);
 
         }else{
@@ -70,8 +109,6 @@ const userController = {
         }
     },
   
-
-
 
       rateTicket: async(req,res)=>{
         try {
@@ -95,6 +132,8 @@ const userController = {
             update,
             { new: true }
           );
+          sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+
           return res.status(200).json({message: "ticket rated successfully"});
           
         } catch (error) {
@@ -105,7 +144,7 @@ const userController = {
 
       setPassword:async(req,res)=>{
         try {
-          const hashedPassword = await bcrypt.hash(req.body.Password, 10);
+          const hashedPassword = await bcrypt.hash(req.body.newPassword, 10);
           console.log(req.userId)
             const user = usersModel.findByIdAndUpdate(
             req.userId,
@@ -136,6 +175,21 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  getOneTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
 
   getProfile: async (req, res) => {
     try {
@@ -203,20 +257,149 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  resetPassword: async (req,res)=>{
+   const oldpass =req.body.oldpass
+   const newpass =req.body.newpass
+   const user=  await usersModel.findById(req.userId)
+   const match = await bcrypt.compare(oldpass, user.Password);
+   if (!match) return res.status(401).json({ message: "Wrong Password" });
+   user.Password=await bcrypt.hash(newpass,10)
+   user.firstTime=false
+
+   await user.save();
+
+    return res.status(200).json({message:"password resetten "})
+  }
 };
-//helper method to assigne agents based on category
-
-
 const assignAgent = async (category) => {
   try {
-    const agents = await usersModel
-      .find({ responsibility: category })
-      .select("_id");
-    return agents[0]._id;
+      const agents = await usersModel.find({ Highresponsibility: category }).select('_id');
+      return agents[0]._id;
+  } catch (error) {
+      throw new Error(error.message);
+  }
+};
+
+const sendEmail = async (subject, body ,toEmail) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail', // e.g., 'gmail'
+    auth: {
+      user: process.env.AUTH_EMAIL,
+      pass: process.env.AUTH_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+  const mailOptions = {
+    to: toEmail,
+    subject: subject,
+    text: body,
+  };
+  try {
+    
+    await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully');
+  } catch (error) {
+    console.error('Error sending email:', error);
+  }
+  
+
+}
+
+
+const assignHelper = async(queue) =>{
+  if (queue.getSize() != 0){
+    const ticket = await queue.getTopTicket();
+    const actualTicket = await ticketModel.findById(ticket._id)
+    //console.log('ticket', ticket)
+    // console.log("ticket category", actualTicket.ticketCategory)
+    const agent = await usersModel.findOne({ Highresponsibility: actualTicket.ticketCategory })
+    //console.log("agent1", agent)
+    const agent2 = await usersModel.findOne({ Midresponsibility: actualTicket.ticketCategory })
+   // console.log("agent2", agent2)
+    const agent3 = await usersModel.findOne({ Lowresponsibility: actualTicket.ticketCategory })
+   // console.log("agent3", agent3)
+
+    const arr=agent.assignedTicket|| [];
+    const arr2=agent2.assignedTicket|| [];
+    const arr3=agent3.assignedTicket|| [];
+  
+    if(arr.length<5){
+      arr.push(actualTicket)
+       await usersModel.findByIdAndUpdate(agent.id,
+         {assignedTicket:arr},
+        {new:true})
+        await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent},{new:true}) 
+        await queue.popTicket();
+    }
+    
+        else if(arr2.length<5){
+          arr2.push(actualTicket);
+          await usersModel.findByIdAndUpdate(agent2.id,
+            {assignedTicket:arr2},
+            {new:true})
+            await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
+            await queue.popTicket();
+
+
+      }
+      else if(arr3.length<5){
+        arr3.push(actualTicket);
+        await usersModel.findByIdAndUpdate(agent3.id,
+          {assignedTicket:arr3},
+          {new:true})
+          await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent3},{new:true}) 
+          await queue.popTicket();
+      }
+  }
+    
+}
+
+//-------
+ const assigneAgent =async () => {
+  try {
+    const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+    const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+    const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    if (highQueue.getSize() > 0) await assignHelper(highQueue);
+    else if (highQueue.getSize() == 0 && medQueue.getSize() > 0) await assignHelper(medQueue);
+    else await assignHelper(lowQueue);
   } catch (error) {
     throw new Error(error.message);
   }
-};
+}
+const addtoQ =async (ticket) => {
+     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    // console.log(ticket.priority);
+    switch (ticket.priority) {
+      case "High":
+      await highQueue.addTicket(ticket);
+        break;
+      case "Medium":
+        await medQueue.addTicket(ticket);
+        break;
+      case "Low":
+        await lowQueue.addTicket(ticket);
+        break;
+      default:
+        // Handle any other cases here
+        break;
+    }
+
+
+
+
+
+
+
+  }
+
+
+
+
 
 
 module.exports = userController;
