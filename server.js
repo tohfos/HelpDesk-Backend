@@ -7,7 +7,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const bodyParser = require("body-parser");
-const Knowledge = require('./models/KnowledgeBase');
+const Knowledge = require('./models/KnowledgeBaseModel');
 // const nodemailer = require('nodemailer');
 
 //const auth = require('./Middleware/authenticationMiddleware')
