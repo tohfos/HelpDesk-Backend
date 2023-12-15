@@ -5,8 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "dev": "nodemon server",
-    "build": "babel server.js -d dist"
+    "dev": "nodemon server"
   },
   "keywords": [],
   "author": "",
