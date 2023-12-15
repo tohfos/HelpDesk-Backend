@@ -1,3 +1,4 @@
+
 const User = require('../models/usersModel')
 const UserPrefrences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
@@ -6,6 +7,11 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 const FaqModel = require('../models/FaqModel')
+const queueModel = require('../models/queueModel')
+const KnowledgeBaseModel = require('../models/KnowledgeBaseModel')
+const backupMongoDB = require("../backup");
+const restoreMongoDB = require("../restore");
+
 
 
 
@@ -44,19 +50,39 @@ const AdminController = {
         }
     },
     AddQuestionsToFAQ: async (req, res) => {
-        try {
-            const { Question, Answer } = req.body;
-            const newQuestion = new FaqModel({
-                Question,
-                Answer,
-            });
-            await newQuestion.save();
-            res.status(201).json({ message: "Question added successfully" });
-        } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
-        }
-    },
+    try {
+      const { Category, SubCategory, Question, Answer } = req.body;
+      const newQuestion = new FaqModel({
+        Question,
+        Answer,
+      });
+      await newQuestion.save();
+      res.status(201).json({ message: "Question added successfully" });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  AddDataToKnowledgeBase: async (req, res) => {
+
+    
+    try {
+        const { Category, SubCategory, Question, Answer, Description } =
+        req.body;
+        const newKnowledgeBase = new KnowledgeBaseModel({
+            Category,
+            SubCategory,
+            Question,
+            Answer,
+            Description,
+        });
+        await newKnowledgeBase.save();
+        res.status(201).json({ message: "Knowledge Base added successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+},
 
     ChangeTheme: async (req, res) => {
         try {
@@ -88,6 +114,35 @@ const AdminController = {
         }
     },
 
+    AddQueue : async (req, res) => {
+        try {
+            const { priorityOfQueue } = req.body
+    
+            const newQueue = new queueModel({ priorityOfQueue : priorityOfQueue});
+            await newQueue.save();
+            return res.status(201).json(newQueue);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    
+
+
+
+    backup :async (req,res) =>{
+        try {
+              return res.status(200).json({message: backupMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    },
+    restore :async (req,res) =>{
+        try {
+              return res.status(200).json({message: restoreMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    }
 
 }
 function generateVerificationToken() {
@@ -124,3 +179,4 @@ function generateVerificationToken() {
     });
 }
 module.exports = AdminController;
+

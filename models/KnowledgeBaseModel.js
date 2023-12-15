@@ -48,6 +48,10 @@ const knowledgeBasedSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    Description: {
+      type: String,
+      required: true,
+    },
   },
   // schemaOptions
   {

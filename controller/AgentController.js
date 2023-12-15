@@ -2,6 +2,8 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+const queueModel = require('../models/queueModel')
+const { userEvents } = require('./userController');
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
@@ -14,13 +16,51 @@ const AgentController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  getOneTicket: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      return res.status(200).json(ticket);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+  communicate: async (req, res) => {
+    try {
+      const ticket = await ticketModel.findById(req.params.id);
+      const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
+      console.log(ticket);
+      if (!ticket) {
+        return res
+          .status(404)
+          .json({ message: "No ticket found created by you " });
+      }
+
+      if(ticket.status!="In Progress"){
+        return res
+          .status(404)
+          .json({ message: "ticket is not in progress " }); 
+      }
+      sendEmail(ticket.title,req.body.body,creatorEmail.profile.email);
+      return res.status(200).json({message:"email sent"})
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
 
     startTicket:async (req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
+         
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
-            return res.status(500).json({ message: "you arenot assigned to that ticket " })
+          return res.status(500).json({ message: "you arenot assigned to that ticket " })
           }
           if(ticket.status=="Open"){
             const update = {status:"In Progress"};
@@ -32,8 +72,12 @@ const AgentController = {
 
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             //console.log("creatorEmail",creatorEmail.profile.email)
+              console.log(req.user)
+            
 
             sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketCreated' , userId );//modification            
+
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -46,13 +90,11 @@ const AgentController = {
           }
     },
 
-    
-
     solveTicket:async (req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
             return res.status(500).json({ message: "you are not assigned to that ticket " })
           }       
@@ -68,10 +110,11 @@ const AgentController = {
               { $pull: { assignedTicket: ticket.id } },
               { new: true }
           );
-          console.log(updatedUser)
+          console.log("after removing ticket",updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
-            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
             assigneAgent();
+            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketSolved' , userId );//modification
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -88,12 +131,11 @@ const AgentController = {
 
   addWorkFlow: async (req, res) => {
     try {
-      const { Category, SubCategory, Question, Answer } = req.body;
+      const { Category, SubCategory, Description } = req.body;
       const newKnowledge = new knowledgeBasedModel({
         Category,
         SubCategory,
-        Question,
-        Answer,
+        Description
       });
       await newKnowledge.save();
       return res
@@ -114,6 +156,9 @@ const sendEmail = async (subject, body ,toEmail) => {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   const mailOptions = {
     to: toEmail,
@@ -132,16 +177,19 @@ const sendEmail = async (subject, body ,toEmail) => {
 }
 
 
-const sendEmailWithHerf = async (subject, body, toEmail) => {
+const sendEmailWithHerf = async (subject, body, toEmail,id) => {
   const transporter = nodemailer.createTransport({
     service: 'gmail', // e.g., 'gmail'
     auth: {
       user: process.env.AUTH_EMAIL,
       pass: process.env.AUTH_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
   // Add HTML markup for the hyperlink
-  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/get">Click here to rate the ticket</a>`;
+  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/rate/${id}">Click here to rate the ticket</a>`;
   const mailOptions = {
     to: toEmail,
     subject: subject,
@@ -155,65 +203,74 @@ const sendEmailWithHerf = async (subject, body, toEmail) => {
   }
 };
 const assignHelper = async(queue) =>{
-  if (queue.size()!=0){
-    const ticket = queue.top();
-    const agent = await usersModel.findOne({ Highresponsibility: ticket.ticketCategory })
-    const agent2 = await usersModel.findOne({ Midresponsibility: ticket.ticketCategory })
-    const agent3 = await usersModel.findOne({ Lowresponsibility: ticket.ticketCategory })
+  if (queue.getSize() != 0){
+    const ticket = await queue.getTopTicket();
+    const actualTicket = await ticketModel.findById(ticket._id)
+    const agent = await usersModel.findOne({ Highresponsibility: actualTicket.ticketCategory })
+    const agent2 = await usersModel.findOne({ Midresponsibility: actualTicket.ticketCategory })
+    const agent3 = await usersModel.findOne({ Lowresponsibility: actualTicket.ticketCategory })
 
     const arr=agent.assignedTicket|| [];
     const arr2=agent2.assignedTicket|| [];
     const arr3=agent3.assignedTicket|| [];
   
     if(arr.length<5){
-      arr.push(ticket)
+      arr.push(actualTicket)
        await usersModel.findByIdAndUpdate(agent.id,
          {assignedTicket:arr},
         {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent},{new:true}) 
-        queue.pop();
+        await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent},{new:true}) 
+        await queue.popTicket();
     }
-    else if(arr2.length<5){
-      arr2.push(ticket);
-       await usersModel.findByIdAndUpdate(agent2.id,
-         {assignedTicket:arr2},
-        {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent2},{new:true}) 
-        queue.pop();
+    
+        else if(arr2.length<5){
+          arr2.push(actualTicket);
+          await usersModel.findByIdAndUpdate(agent2.id,
+            {assignedTicket:arr2},
+            {new:true})
+            await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent2},{new:true}) 
+            await queue.popTicket();
 
-    }
-    else if(arr3.length<5){
-      arr3.push(ticket);
-       await usersModel.findByIdAndUpdate(agent3.id,
-         {assignedTicket:arr3},
-        {new:true})
-        await ticketModel.findByIdAndUpdate(ticket.id,{assignedTo:agent3},{new:true}) 
-        queue.pop();
-    }
+      }
+      else if(arr3.length<5){
+        arr3.push(actualTicket);
+        await usersModel.findByIdAndUpdate(agent3.id,
+          {assignedTicket:arr3},
+          {new:true})
+          await ticketModel.findByIdAndUpdate(actualTicket.id,{assignedTo:agent3},{new:true}) 
+          await queue.popTicket();
+      }
+  }
+    
 }
-}
+
 //-------
  const assigneAgent =async () => {
   try {
-    assignHelper(High_priority);
-    assignHelper(Medium_priority);
-    assignHelper(Low_priority);
+    const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+    const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+    const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
+    if (highQueue.getSize() > 0) await assignHelper(highQueue);
+    else if (highQueue.getSize() == 0 && medQueue.getSize() > 0) await assignHelper(medQueue);
+    else await assignHelper(lowQueue);
   } catch (error) {
     throw new Error(error.message);
   }
 }
-   const addtoQ =async (ticket) => {
+const addtoQ =async (ticket) => {
+     const highQueue = await queueModel.findOne({ priorityOfQueue : "High Priority Queue"});
+     const medQueue = await queueModel.findOne({ priorityOfQueue : "Medium Priority Queue"});
+     const lowQueue = await queueModel.findOne({ priorityOfQueue : "Low Priority Queue"});
     // console.log(ticket.priority);
     switch (ticket.priority) {
       case "High":
-        
-        High_priority.add(ticket);
+      await highQueue.addTicket(ticket);
         break;
       case "Medium":
-        Medium_priority.add(ticket);
+        await medQueue.addTicket(ticket);
         break;
       case "Low":
-        Low_priority.add(ticket);
+        await lowQueue.addTicket(ticket);
         break;
       default:
         // Handle any other cases here
