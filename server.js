@@ -18,6 +18,7 @@ const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
+const managerRouter = require('./Routes/managerRoutes');
 const userController = require('./controller/userController')
 const AgentController = require('./controller/AgentController')
 const authenticateJWT = require('./Middleware/authenticateJWT');
@@ -38,7 +39,22 @@ const io = socketIO(server, {
     methods: ['GET', 'POST'],
   }
 });
-
+io.on('connection', (socket) => {
+    console.log('A user connected');
+  
+    // Get the user ID from the socket's query parameters
+    const userId = socket.handshake.query.userId;
+  
+    // Associate the user ID with the socket connection
+    socket.userId = userId;
+  
+    // Your existing event handling logic
+    // ...
+  
+    socket.on('disconnect', () => {
+      console.log('User disconnected');
+    });
+  });
 
 app.use(express.json());
 app.use(cookieParser());
@@ -53,8 +69,8 @@ app.use(authenticateJWT);
 app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/admin/", adminRouter);
+app.use("/api/v1/manager/", managerRouter);
 app.use('/api/chats', chatRoutes(io));
-
 
 
 const connectDB = async () => {

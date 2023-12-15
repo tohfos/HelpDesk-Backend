@@ -76,8 +76,7 @@ const AgentController = {
             
 
             sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
-            userEvents.emit('ticketCreated' , userId );//modification            
-
+            sendNotification(userId,"Ticket Started",`ticket is started for user ${userId}`,"ticket_started");  
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -114,7 +113,7 @@ const AgentController = {
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             assigneAgent();
             sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
-            userEvents.emit('ticketSolved' , userId );//modification
+            sendNotification(userId,"Ticket Solved",`ticket is solved for user ${userId}`,"ticket_resolved");  
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -147,6 +146,27 @@ const AgentController = {
   },
 };
 
+// Example: sendNotification function
+function sendNotification(userId, notification,details,notification_Id) {
+  // Find the socket associated with the user ID
+  const userSocket = io.sockets.connected[userId];
+
+  if (userSocket) {
+    // Send a notification to the user using their WebSocket connection
+    Notification.requestPermission.then(perm =>  {
+      if(perm=== "granted"){
+        const notif =new Notification(notification , {
+        body: details,
+        //icon: "../logo.svg",
+        tag:notification_Id
+            });
+        userSocket.emit('notification', notif);
+      }
+    })
+  } else {
+    console.error(`User ${userId} is not connected.`);
+  }
+}
 
 
 const sendEmail = async (subject, body ,toEmail) => {
