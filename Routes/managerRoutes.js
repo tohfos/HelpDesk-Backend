@@ -8,3 +8,5 @@ router.get('/getReport/:id',authorizationJWT(['Manager']),ManagerController.getR
 router.post('/generateAnalytics1/:id',authorizationJWT(['Manager']),ManagerController.generateAnalyticsForAgent);
 router.post('/generateAnalytics2/:SubCategory',authorizationJWT(['Manager']),ManagerController.generateAnalyticsForSubCategory);
 router.post('/generateAnalytics3/:Category',authorizationJWT(['Manager']),ManagerController.generateAnalyticsForCategory);
+
+module.exports = router;
