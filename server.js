@@ -36,7 +36,7 @@ const server = http.createServer(app);
 // const io = socketIO(server)
 const io = socketIO(server, {
   cors: {
-    origin: 'http://localhost:3001',
+    origin: process.env.REACT_APP_API_URL,
     methods: ['GET', 'POST'],
   }
 });
