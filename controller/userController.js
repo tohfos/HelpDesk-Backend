@@ -7,9 +7,37 @@ const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const usersModel = require("../models/usersModel")
 const chatsModel = require("../models/chatsModel");
 const Queue = require("../queue");
-const queueModel = require("../models/queueModel");
-const nodemailer = require("nodemailer");
+const queueModel = require('../models/queueModel')
+const nodemailer = require('nodemailer');
+const { EventEmitter } = require('events');// modification
+const userEvents = new EventEmitter();// modification
 
+userEvents.on('ticketSolved', (userId) => {
+  Notification.requestPermission.then(perm =>  {
+    if(perm=== "granted"){
+      const notification =new Notification("ticket is solved" , {
+      body: `ticket is solved for user ${userId}`,
+      //icon: "../logo.svg",
+      tag:"ticket solved"
+          });
+    }
+  })
+})
+
+
+
+
+userEvents.on('ticketCreated', (userId) => {
+  Notification.requestPermission.then(perm =>  {
+    if(perm=== "granted"){
+      const notification =new Notification("ticket is created" , {
+      body: `ticket is Created for user ${userId}`,
+      //icon: "../logo.svg",
+      tag:"ticket created"
+          });
+    }
+  })
+})
 const userController = {
   createTicket: async (req, res) => {
     //   try{
@@ -409,4 +437,4 @@ const addtoQ = async (ticket) => {
   }
 };
 
-module.exports = userController;
+module.exports = {userController,userEvents};

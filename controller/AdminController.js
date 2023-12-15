@@ -9,6 +9,9 @@ const nodemailer = require('nodemailer');
 const FaqModel = require('../models/FaqModel')
 const queueModel = require('../models/queueModel')
 const KnowledgeBaseModel = require('../models/KnowledgeBaseModel')
+const backupMongoDB = require("../backup");
+const restoreMongoDB = require("../restore");
+
 
 
 
@@ -124,6 +127,22 @@ const AdminController = {
     },
     
 
+
+
+    backup :async (req,res) =>{
+        try {
+              return res.status(200).json({message: backupMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    },
+    restore :async (req,res) =>{
+        try {
+              return res.status(200).json({message: restoreMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    }
 
 }
 function generateVerificationToken() {

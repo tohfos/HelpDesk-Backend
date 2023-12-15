@@ -11,8 +11,8 @@ router.post('/addQuestionsToFAQ', authorizationJWT(['Admin']), AdminController.A
 router.post('/changeTheme', authorizationJWT(['Admin']), AdminController.ChangeTheme)
 router.post('/createQueue', authorizationJWT(['Admin']), AdminController.AddQueue)
 router.post('/AddDataToKnowledgeBase', authorizationJWT(['Admin']), AdminController.AddDataToKnowledgeBase)
-
-
+router.post('/backup', authorizationJWT(['Admin']), AdminController.backup)
+router.post('/restore', authorizationJWT(['Admin']), AdminController.restore)
 
 
 

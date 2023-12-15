@@ -73,7 +73,7 @@ connectDB();
 mongoose.connection.once('open', () => {
 
   console.log('Connected to MongoDB');
-  //backupMongoDB();
+//   backupMongoDB();
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
