@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const bodyParser = require("body-parser");
+const Knowledge = require('./models/KnowledgeBase');
 // const nodemailer = require('nodemailer');
 
 //const auth = require('./Middleware/authenticationMiddleware')
@@ -85,3 +86,23 @@ mongoose.connection.on('error', err => {
 });
 
 
+// app.get('/autocomplete', async (req, res) => {
+//   const { q } = req.query;
+
+//   if (!q) {
+//     return res.status(400).json({ error: 'Query parameter "q" is required' });
+//   }
+
+//   try {
+//     // Perform a case-insensitive search on relevant fields in your models
+//     const knowledge = await Knowledge.find({ $text: { $search: q, $caseSensitive: false } }).exec();
+ 
+
+//     // Combine and send the results as JSON
+//     const results = [...knowledge];
+//     res.json(results);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });

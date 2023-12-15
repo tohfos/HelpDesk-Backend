@@ -8,8 +8,10 @@ const nodemailer = require('nodemailer');
 
 const FaqModel = require('../models/FaqModel')
 const queueModel = require('../models/queueModel')
+const KnowledgeBaseModel = require('../models/KnowledgeBaseModel')
 const backupMongoDB = require("../backup");
 const restoreMongoDB = require("../restore");
+
 
 
 
@@ -51,8 +53,6 @@ const AdminController = {
     try {
       const { Category, SubCategory, Question, Answer } = req.body;
       const newQuestion = new FaqModel({
-        Category,
-        SubCategory,
         Question,
         Answer,
       });
@@ -63,6 +63,26 @@ const AdminController = {
       res.status(500).json({ message: error.message });
     }
   },
+  AddDataToKnowledgeBase: async (req, res) => {
+
+    
+    try {
+        const { Category, SubCategory, Question, Answer, Description } =
+        req.body;
+        const newKnowledgeBase = new KnowledgeBaseModel({
+            Category,
+            SubCategory,
+            Question,
+            Answer,
+            Description,
+        });
+        await newKnowledgeBase.save();
+        res.status(201).json({ message: "Knowledge Base added successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+},
 
     ChangeTheme: async (req, res) => {
         try {
