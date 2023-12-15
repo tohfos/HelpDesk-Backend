@@ -41,6 +41,14 @@ const ManagerController = {
           }
         
     },
+    getReports: async (req, res) => {
+        try{
+            const reports = await ReportsModel.find();
+            return res.status(201).json(reports);
+        }catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    },
     generateAnalyticsFor: async(req,res) => {
         try{
          const analyticsFor = req.body.analysisFor;
