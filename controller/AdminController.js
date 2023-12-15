@@ -1,3 +1,4 @@
+
 const User = require('../models/usersModel')
 const UserPrefrences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
@@ -6,6 +7,11 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
 const FaqModel = require('../models/FaqModel')
+const queueModel = require('../models/queueModel')
+const KnowledgeBaseModel = require('../models/KnowledgeBaseModel')
+const backupMongoDB = require("../backup");
+const restoreMongoDB = require("../restore");
+
 
 
 
@@ -13,10 +19,11 @@ const AdminController = {
 
     CreateUser: async (req, res) => {
         try {
-            const { UserName, Password, profile, Role } = req.body;
+            const { UserName, Password, profile ,Role} = req.body;
+            const verificationToken = generateVerificationToken(); 
+              sendVerificationEmail(UserName, Password,verificationToken,profile.email);
 
-            const hashedPassword = await bcrypt.hash(Password, 10);
-            const verificationToken = generateVerificationToken();
+          const hashedPassword = await bcrypt.hash(Password, 10);
 
             const newUser = new User({
                 UserName,
@@ -25,12 +32,16 @@ const AdminController = {
                 Role,
                 verificationToken: verificationToken
             });
-            if (Role == "Agent") {
-                newUser.responsibility = req.body.responsibility;
-            }
-            console.log(verificationToken)
-            sendVerificationEmail(req.body.profile.email, verificationToken);
+            if(Role=="Agent") {
+                newUser.Highresponsibility=req.body.Highresponsibility;
 
+                newUser.Midresponsibility=req.body.Midresponsibility;
+
+                newUser.Lowresponsibility=req.body.Lowresponsibility;
+
+                
+            }
+            
             await newUser.save();
             res.status(201).json({ message: "User registered successfully" });
         } catch (error) {
@@ -39,19 +50,39 @@ const AdminController = {
         }
     },
     AddQuestionsToFAQ: async (req, res) => {
-        try {
-            const { Question, Answer } = req.body;
-            const newQuestion = new FaqModel({
-                Question,
-                Answer,
-            });
-            await newQuestion.save();
-            res.status(201).json({ message: "Question added successfully" });
-        } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
-        }
-    },
+    try {
+      const { Category, SubCategory, Question, Answer } = req.body;
+      const newQuestion = new FaqModel({
+        Question,
+        Answer,
+      });
+      await newQuestion.save();
+      res.status(201).json({ message: "Question added successfully" });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  AddDataToKnowledgeBase: async (req, res) => {
+
+    
+    try {
+        const { Category, SubCategory, Question, Answer, Description } =
+        req.body;
+        const newKnowledgeBase = new KnowledgeBaseModel({
+            Category,
+            SubCategory,
+            Question,
+            Answer,
+            Description,
+        });
+        await newKnowledgeBase.save();
+        res.status(201).json({ message: "Knowledge Base added successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+},
 
     ChangeTheme: async (req, res) => {
         try {
@@ -83,13 +114,42 @@ const AdminController = {
         }
     },
 
+    AddQueue : async (req, res) => {
+        try {
+            const { priorityOfQueue } = req.body
+    
+            const newQueue = new queueModel({ priorityOfQueue : priorityOfQueue});
+            await newQueue.save();
+            return res.status(201).json(newQueue);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    },
+    
+
+
+
+    backup :async (req,res) =>{
+        try {
+              return res.status(200).json({message: backupMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    },
+    restore :async (req,res) =>{
+        try {
+              return res.status(200).json({message: restoreMongoDB() });
+            } catch (error) {
+            return res.status(500).json({ message: error.message });
+            }
+    }
 
 }
 function generateVerificationToken() {
     return crypto.randomBytes(20).toString('hex');
-}
-const sendVerificationEmail = async (email, verificationToken) => {
-
+  }
+  const sendVerificationEmail = async (username,pass,token,email) => {
+ 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -102,10 +162,13 @@ const sendVerificationEmail = async (email, verificationToken) => {
         to: email,
         subject: 'Account Verification',
         html: `<p>Please click the following link to verify your account:</p>
-               <a href="http://localhost:3000/verify?token=${verificationToken}">Verify</a>`,
-    };
+               <a href="http://localhost:3000/auth/verify?token=${token}">Verify</a>
+               Your username:${username}
+               Your passWord:${pass}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error, info) => {
 
-    transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             console.error(error);
             reject('Error sending verification email');
@@ -116,3 +179,4 @@ const sendVerificationEmail = async (email, verificationToken) => {
     });
 }
 module.exports = AdminController;
+
