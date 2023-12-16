@@ -107,12 +107,22 @@ const AdminController = {
     updateRole :async (req,res)=>{
         try {
             const user = await usersModel.findByIdAndUpdate(req.params.id,{Role:req.body,role},{new:true})
+            return res.status(200).json({message:"role updated"})
         } catch (error) {
             return res.status(500).json({ message: error.message });
 
         }
     },
+    getAllUsers :async (req,res)=>{
+        try {
+            const user = await usersModel.getAllUsers()
+            return res.status(200).json(user);
 
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+
+        }
+    },
 
     backup :async (req,res) =>{
         try {
