@@ -12,6 +12,7 @@ router.post('/changeTheme', authorizationJWT(['Admin']), AdminController.ChangeT
 router.post('/createQueue', authorizationJWT(['Admin']), AdminController.AddQueue)
 router.post('/backup', authorizationJWT(['Admin']), AdminController.backup)
 router.post('/restore', authorizationJWT(['Admin']), AdminController.restore)
+router.post('/updateTole', authorizationJWT(['Admin']), AdminController.updateRole);
 
 
 module.exports = router;

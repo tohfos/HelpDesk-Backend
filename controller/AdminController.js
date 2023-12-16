@@ -9,6 +9,7 @@ const FaqModel = require('../models/FaqModel')
 const queueModel = require('../models/queueModel')
 const backupMongoDB = require("../backup");
 const restoreMongoDB = require("../restore");
+const usersModel = require('../models/usersModel');
 
 
 
@@ -103,7 +104,14 @@ const AdminController = {
         }
     },
     
+    updateRole :async (req,res)=>{
+        try {
+            const user = await usersModel.findByIdAndUpdate(req.params.id,{Role:req.body,role},{new:true})
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
 
+        }
+    },
 
 
     backup :async (req,res) =>{
