@@ -3,6 +3,7 @@ const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 const queueModel = require('../models/queueModel')
+const { userEvents } = require('./userController');
 
 // const ticketUpdatesModel = require('../models/TicketUpdatesModel')
 
@@ -55,9 +56,11 @@ const AgentController = {
     startTicket:async (req,res)=>{
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
+         
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
-            return res.status(500).json({ message: "you arenot assigned to that ticket " })
+          return res.status(500).json({ message: "you arenot assigned to that ticket " })
           }
           if(ticket.status=="Open"){
             const update = {status:"In Progress"};
@@ -70,7 +73,11 @@ const AgentController = {
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
             //console.log("creatorEmail",creatorEmail.profile.email)
               console.log(req.user)
-            sendEmail("Ticket started" ,`Agent: ${req.user} started testing a ticket ` ,creatorEmail.profile.email);
+            
+
+            sendEmail("Ticket started" ,`Agent: ${req.username} started testing a ticket ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketCreated' , userId );//modification            
+
             return res
               .status(200)
               .json({ ticket, msg: "ticket opened successfully" });
@@ -87,7 +94,7 @@ const AgentController = {
         try {
           const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy"); 
           if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-
+          const userId = ticket.createdBy;
           if(ticket.assignedTo.toString()!=req.userId){
             return res.status(500).json({ message: "you are not assigned to that ticket " })
           }       
@@ -105,8 +112,9 @@ const AgentController = {
           );
           console.log("after removing ticket",updatedUser)
             const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
-            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email,req.params.id);
             assigneAgent();
+            sendEmailWithHerf("Solved Ticket" ,`Agent: ${req.user} Solved testing ticket you can rate the ticket here ` ,creatorEmail.profile.email);
+            userEvents.emit('ticketSolved' , userId );//modification
             return res
               .status(200)
               .json({ ticket, msg: "ticket resolved successfully" });
@@ -123,12 +131,11 @@ const AgentController = {
 
   addWorkFlow: async (req, res) => {
     try {
-      const { Category, SubCategory, Question, Answer } = req.body;
+      const { Category, SubCategory, Description } = req.body;
       const newKnowledge = new knowledgeBasedModel({
         Category,
         SubCategory,
-        Question,
-        Answer,
+        Description
       });
       await newKnowledge.save();
       return res

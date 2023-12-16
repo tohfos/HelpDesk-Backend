@@ -1,3 +1,4 @@
+
 const User = require('../models/usersModel')
 const UserPrefrences = require('../models/UserPreferences')
 const bcrypt = require("bcrypt");
@@ -7,9 +8,11 @@ const nodemailer = require('nodemailer');
 
 const FaqModel = require('../models/FaqModel')
 const queueModel = require('../models/queueModel')
+const KnowledgeBaseModel = require('../models/KnowledgeBaseModel')
 const backupMongoDB = require("../backup");
 const restoreMongoDB = require("../restore");
 const usersModel = require('../models/usersModel');
+
 
 
 
@@ -48,19 +51,39 @@ const AdminController = {
         }
     },
     AddQuestionsToFAQ: async (req, res) => {
-        try {
-            const { Question, Answer } = req.body;
-            const newQuestion = new FaqModel({
-                Question,
-                Answer,
-            });
-            await newQuestion.save();
-            res.status(201).json({ message: "Question added successfully" });
-        } catch (error) {
-            console.log(error.message);
-            res.status(500).json({ message: error.message });
-        }
-    },
+    try {
+      const { Category, SubCategory, Question, Answer } = req.body;
+      const newQuestion = new FaqModel({
+        Question,
+        Answer,
+      });
+      await newQuestion.save();
+      res.status(201).json({ message: "Question added successfully" });
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  AddDataToKnowledgeBase: async (req, res) => {
+
+    
+    try {
+        const { Category, SubCategory, Question, Answer, Description } =
+        req.body;
+        const newKnowledgeBase = new KnowledgeBaseModel({
+            Category,
+            SubCategory,
+            Question,
+            Answer,
+            Description,
+        });
+        await newKnowledgeBase.save();
+        res.status(201).json({ message: "Knowledge Base added successfully" });
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({ message: error.message });
+    }
+},
 
     ChangeTheme: async (req, res) => {
         try {
@@ -115,8 +138,11 @@ const AdminController = {
     },
     getAllUsers :async (req,res)=>{
         try {
-            const user = await usersModel.find();
-            return res.status(200).json(user);
+            const users = await usersModel.find();
+            if (!users || users.length === 0) {
+                return res.status(404).json({ message: 'No users found' });
+            }
+            return res.status(200).json(users);
 
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -174,3 +200,4 @@ function generateVerificationToken() {
     });
 }
 module.exports = AdminController;
+
