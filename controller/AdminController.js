@@ -138,8 +138,11 @@ const AdminController = {
     },
     getAllUsers :async (req,res)=>{
         try {
-            const user = await usersModel.find();
-            return res.status(200).json(user);
+            const users = await usersModel.find();
+            if (!users || users.length === 0) {
+                return res.status(404).json({ message: 'No users found' });
+            }
+            return res.status(200).json(users);
 
         } catch (error) {
             return res.status(500).json({ message: error.message });
