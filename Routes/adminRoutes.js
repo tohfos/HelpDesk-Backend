@@ -13,6 +13,7 @@ router.post('/createQueue', authorizationJWT(['Admin']), AdminController.AddQueu
 router.post('/AddDataToKnowledgeBase', authorizationJWT(['Admin']), AdminController.AddDataToKnowledgeBase)
 router.post('/backup', authorizationJWT(['Admin']), AdminController.backup)
 router.post('/restore', authorizationJWT(['Admin']), AdminController.restore)
+router.post('/updateTole', authorizationJWT(['Admin']), AdminController.updateRole);
 
 
 
