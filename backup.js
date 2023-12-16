@@ -3,7 +3,8 @@ const path = require('path');
 const cron = require('node-cron');
 //const { MongoClient } = require('mongodb'); 
 const DB_NAME = 'HelpDesk';
-const ARCHIVE_PATH = path.join(__dirname, 'backups', `backup${Date.now()}`);
+const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+const ARCHIVE_PATH = path.join(__dirname, 'backups', `backup_${currentDate}`);
 
 const mongoURI = process.env.DB_URL;
 cron.schedule('0 0 * * *', () => backupMongoDB());

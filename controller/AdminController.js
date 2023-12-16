@@ -115,7 +115,7 @@ const AdminController = {
     },
     getAllUsers :async (req,res)=>{
         try {
-            const user = await usersModel.getAllUsers()
+            const user = await usersModel.find();
             return res.status(200).json(user);
 
         } catch (error) {
