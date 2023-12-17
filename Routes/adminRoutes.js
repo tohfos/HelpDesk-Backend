@@ -13,8 +13,8 @@ router.post('/createQueue', authorizationJWT(['Admin']), AdminController.AddQueu
 router.post('/AddDataToKnowledgeBase', authorizationJWT(['Admin']), AdminController.AddDataToKnowledgeBase)
 router.post('/backup', authorizationJWT(['Admin']), AdminController.backup)
 router.post('/restore', authorizationJWT(['Admin']), AdminController.restore)
-router.post('/updateRole', authorizationJWT(['Admin']), AdminController.updateRole);
-router.post('/getallusers', authorizationJWT(['Admin']), AdminController.getAllUsers);
+router.put('/updateRole/:id', authorizationJWT(['Admin']), AdminController.updateRole);
+router.get('/getallusers', authorizationJWT(['Admin']), AdminController.getAllUsers);
 
 
 module.exports = router;
