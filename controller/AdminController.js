@@ -184,7 +184,7 @@ const sendVerificationEmail = async (username, pass, token, email) => {
         to: email,
         subject: 'Account Verification',
         html: `<p>Please click the following link to verify your account:</p>
-               <a href="http://localhost:3000/auth/verify?token=${token}">Verify</a>
+               <a href="${process.env.ORIGIN}/auth/verify?token=${token}">Verify</a>
                Your username:${username}
                Your passWord:${pass}`,
     };

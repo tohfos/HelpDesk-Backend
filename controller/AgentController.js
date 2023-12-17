@@ -189,7 +189,7 @@ const sendEmailWithHerf = async (subject, body, toEmail,id) => {
     },
   });
   // Add HTML markup for the hyperlink
-  const htmlBody = `${body}<br/><a href="http://localhost:3000/api/v1/user/rate/${id}">Click here to rate the ticket</a>`;
+  const htmlBody = `${body}<br/><a href="${process.env.ORIGIN}/api/v1/user/rate/${id}">Click here to rate the ticket</a>`;
   const mailOptions = {
     to: toEmail,
     subject: subject,
