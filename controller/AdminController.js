@@ -138,7 +138,7 @@ const AdminController = {
     },
     getAllUsers: async (req, res) => {
         try {
-            const users = await usersModel.find();
+            const users = await usersModel.find().select('profile UserName Role Highresponsibility Midresponsibility Lowresponsibility');
             if (!users || users.length === 0) {
                 return res.status(404).json({ message: 'No users found' });
             }
