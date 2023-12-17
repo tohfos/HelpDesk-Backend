@@ -34,6 +34,7 @@ const AdminController = {
                 verificationToken: verificationToken
             });
             if (Role == "Agent") {
+
                 newUser.Highresponsibility = req.body.Highresponsibility;
 
                 newUser.Midresponsibility = req.body.Midresponsibility;
@@ -129,7 +130,7 @@ const AdminController = {
 
     updateRole: async (req, res) => {
         try {
-            const user = await usersModel.findByIdAndUpdate(req.params.id, { Role: req.body, role }, { new: true })
+            const user = await usersModel.findByIdAndUpdate(req.params.id, { Role: req.body.role }, { new: true })
             return res.status(200).json({ message: "role updated" })
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -183,7 +184,7 @@ const sendVerificationEmail = async (username, pass, token, email) => {
         to: email,
         subject: 'Account Verification',
         html: `<p>Please click the following link to verify your account:</p>
-               <a href="http://localhost:3000/auth/verify?token=${token}">Verify</a>
+               <a href="${process.env.ORIGIN}/auth/verify?token=${token}">Verify</a>
                Your username:${username}
                Your passWord:${pass}`,
     };
