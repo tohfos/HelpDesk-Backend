@@ -5,6 +5,7 @@ const FaqModel = require("../models/FaqModel");
 const KnowledgeBaseModel = require("../models/KnowledgeBaseModel");
 //const ticketModel = require("../models/ticketModels")
 //const usersModel = require("../models/usersModel")
+
 const chatsModel = require("../models/chatsModel");
 const Queue = require("../queue");
 const queueModel = require('../models/queueModel')
@@ -23,6 +24,9 @@ userEvents.on('ticketSolved', (userId) => {
     }
   })
 })
+const chatsModel = require("../models/chatsModel")
+const { RandomForestClassifier } = require('Bob.joblib'); // Import the library used for your model
+
 
 
 
