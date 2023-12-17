@@ -188,6 +188,7 @@ const sendVerificationEmail = async (username, pass, token, email) => {
                Your username:${username}
                Your passWord:${pass}`,
     };
+    // 7afa4d9f-7c5b-4d0b-8d9f-3e8f7f3f8f2c
 
     transporter.sendMail(mailOptions, (error, info) => {
 
