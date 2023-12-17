@@ -39,108 +39,106 @@ userEvents.on('ticketCreated', (userId) => {
   })
 })
 const userController = {
-  createTicket: async (req, res) => {
-    //   try{
-    //     const category=req.body.ticketCategory
-    //     if(category!="others"){
-    //       const ticket = new ticketModel({
+  
+  createTicket: async (req,res)=>{
 
-    //       createdBy: req.userId,
-    //       // assignedTo:Agent_id,
-    //       ticketCategory: category,
-    //       SubCategory:req.body.SubCategory,
-    //       priority:req.body.priority,
-    //       status:"Open",
-    //       title:req.body.title,
-    //       description:req.body.description
-    //     });
+    try{
+        const category=req.body.ticketCategory
 
-    //       const newticket=await ticket.save();
-    //       // Queue.addtoQ(newticket);
-    //       // Queue.assigneAgent();
-    //       return res.status(201).json(newticket);
-
-    //   }else{
-    //     const chat = new chatsModel({userId:req.userId})
-    //     const newchat=await chat.save();
-    //       console.log(newchat);
-    //       return res.status(201).json(newchat);
-    //   }
-
-    // }
-    try {
-      const category = req.body.ticketCategory;
-      if (category != "others") {
-        const Agent_id = await assignAgent(category);
+        // const Agent_id= await assignAgent(category);
+        
         const ticket = new ticketModel({
-          createdBy: req.userId,
-          assignedTo: Agent_id,
-          ticketCategory: category,
-          SubCategory: req.body.SubCategory,
-          priority: req.body.priority,
-          status: "Open",
-          title: req.body.title,
-          description: req.body.description,
-        });
+        createdBy: req.userId,
+        // assignedTo:Agent_id,
+        ticketCategory: category,
+        priority:req.body.priority,
+        status:"Open",
+        title:req.body.title,
+        description:req.body.description
+      });
 
-        const newticket = await ticket.save();
+      if (category != "others"){
+        ticket.SubCategory = req.body.SubCategory;
+      }else{
+        
+        const agents = await usersModel.find({ Role: "Agent" })
+        const randomAgent = agents[ Math.floor(Math.random() * 3)];
 
-        await addtoQ(newticket);
-        await assigneAgent();
+        console.log("Agents:" ,agents)
+        ticket.assignedTo = randomAgent._id;
+        
+        const chat = new chatsModel({"ticketId" : ticket, "userId" : req.userId , "agentId" : randomAgent._id })
+        const newChat = await chat.save();
 
-        sendEmail(
-          `Ticket created ${newticket.title}`,
-          `Ticket created `,
-          req.email
-        );
+        ticket.hasChat = true
+        const newticket= await ticket.save();
 
-        return res.status(201).json(newticket);
-      } else {
-        const chat = new chatsModel({ userId: req.userId });
-        const newchat = await chat.save();
-        console.log(newchat);
-        return res.status(201).json(newchat);
+        console.log(newChat);
+        sendEmail(`Ticket created ${newticket.title}` ,`Ticket Created And Their is Chat Opend For You ` ,req.email);
+        return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat});
       }
-    } catch (e) {
-      return res.status(500).json({ message: e.message });
+
+      const newticket= await ticket.save();
+      
+      await addtoQ(newticket);
+      await assigneAgent();
+      
+      sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
+
+      return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat});
+
+
     }
+      catch(e){
+          return res.status(500).json({ message: e.message });
+      }
   },
 
-  rateTicket: async (req, res) => {
-    try {
+
+    rateTicket: async(req,res)=>{
+      try {
+        const ticket = await ticketModel.findById(req.params.id);
+        if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
+
+        if(ticket.createdBy != req.userId){
+          return res.status(403).json({ message: "Not Your Ticket" });
+        }
+
+        if(ticket.status != "Resolved"){
+          return res.status(500).json({ message: "Ticket is Not Resolved" });
+        }
+        if(ticket.rating != null){
+          return res.status(500).json({ message: "Ticket is already Rated" });
+        }
+
+        const update = {rating:req.body.rating};
+        const ticketupdate = await ticketModel.findByIdAndUpdate(
+          req.params.id,
+          update,
+          { new: true }
+        );
+        
+        sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
+        return res.status(200).json({message: "ticket rated successfully"});
+        
+      } catch (error) {
+        return res.status(500).json({ message: error.message });
+      }
+    },
+    OpenChat:async(req,res)=>{
       const ticket = await ticketModel.findById(req.params.id);
-      if (!ticket) {
-        return res.status(404).json({ message: "ticket Not Found" });
-      }
-
-      if (ticket.createdBy != req.userId) {
-        return res.status(403).json({ message: "Not Your Ticket" });
-      }
-
-      if (ticket.status != "Resolved") {
+      if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
+      if(ticket.status != "Resolved"){
         return res.status(500).json({ message: "Ticket is Not Resolved" });
       }
-      if (ticket.rating != null) {
-        return res.status(500).json({ message: "Ticket is already Rated" });
-      }
-
-      const update = { rating: req.body.rating };
-      const ticketupdate = await ticketModel.findByIdAndUpdate(
-        req.params.id,
-        update,
-        { new: true }
-      );
-      sendEmail(
-        "Ticket rate",
-        `You Have Rated Your Ticket ${ticket.title}`,
-        req.email
-      );
-
-      return res.status(200).json({ message: "ticket rated successfully" });
-    } catch (error) {
-      return res.status(500).json({ message: error.message });
-    }
-  },
+      const chat = new chatsModel({"ticketId" : ticket , "userId" : req.userId , "agentId" : ticket.assignedTo })
+      const newChat = await chat.save();
+  
+      ticket.hasChat = true
+      await ticket.save()
+      sendEmail(`Chat is Opend For Ticket ${ticket.title}`,`check your message tab For the chat` , req.email )
+      return res.status(200).json({"chat":newChat})
+    },
 
   setPassword: async (req, res) => {
     try {
