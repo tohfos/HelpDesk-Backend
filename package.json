@@ -13,19 +13,25 @@
   "dependencies": {
     "@tensorflow/tfjs": "^4.14.0",
     "bcrypt": "^5.1.1",
+    "bull": "^4.11.5",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",
     "csvparser": "^0.1.4",
     "date-fns": "^2.30.0",
     "dotenv": "^16.3.1",
+    "events": "^3.3.0",
     "express": "^4.18.2",
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
     "mongoose": "^8.0.1",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.7",
+    "socket.io": "^4.7.2",
     "papaparse": "^5.4.1",
     "random-forest": "^0.0.7",
+
     "uuid": "^9.0.1"
   },
   "devDependencies": {
