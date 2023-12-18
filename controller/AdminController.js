@@ -34,7 +34,10 @@ const AdminController = {
                 verificationToken: verificationToken
             });
             if (Role == "Agent") {
-
+                const users = await usersModel.find({ Role: "Agent" })
+                if (users.length >= 3) {
+                    return res.status(500).json({ message: "you can't add more than three agents" });
+                }
                 newUser.Highresponsibility = req.body.Highresponsibility;
 
                 newUser.Midresponsibility = req.body.Midresponsibility;
@@ -130,6 +133,21 @@ const AdminController = {
 
     updateRole: async (req, res) => {
         try {
+            //chech if their is more than three agents in database
+            const users = await usersModel.find({ Role: "Agent" })
+            if (users.length >= 3 && req.body.role == "Agent") {
+                return res.status(500).json({ message: "you can't add more than three agents" });
+            }
+            //check if the role is agent and the user didn't fill the fields
+            
+            if(req.body.role == "Agent"){
+                const {Highresponsibility , Midresponsibility , Lowresponsibility} = req.body
+                if(!Highresponsibility || !Midresponsibility || !Lowresponsibility){ 
+                    return res.status(500).json({ message: "please fill all the fields" });
+                }
+                const user = await usersModel.findByIdAndUpdate(req.params.id, { Role: req.body.role , Highresponsibility , Midresponsibility , Lowresponsibility}, { new: true }) 
+                return res.status(200).json({ message: "role updated" })
+            }
             const user = await usersModel.findByIdAndUpdate(req.params.id, { Role: req.body.role }, { new: true })
             return res.status(200).json({ message: "role updated" })
         } catch (error) {
