@@ -3,7 +3,8 @@ const router = express.Router();
 const { userController, userEvents } = require('../controller/userController');
 const authorizationJWT = require("../Middleware/authorizeJWT");
 
-router.put('/resetPassword', authorizationJWT(['User']), userController.resetPassword);
+//TODO make reset password accessible to all users
+router.put('/resetPassword', authorizationJWT(['User','Manager','Agent']), userController.resetPassword);
 router.post('/create', authorizationJWT(['User']), userController.createTicket);
 router.get('/get', authorizationJWT(['User']), userController.getTicket);
 router.get('/getOne/:id', authorizationJWT(['User']), userController.getOneTicket);
