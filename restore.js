@@ -9,32 +9,34 @@ async function restoreLatestBackup() {
   try {
     // Read all files in the backup directory
     const files = fs.readdirSync(BACKUP_DIR);
-
     // Filter out non-backup files
     const backupFiles = files.filter((file) => {
       // Modify the condition to match your backup file naming pattern
       return file.startsWith('backup');
     });
-
     // Sort the backup files based on their timestamps
+    // Example of backup file names:
+
     backupFiles.sort((a, b) => {
-      const timestampA = parseInt(a.replace('backup', ''));
-      const timestampB = parseInt(b.replace('backup', ''));
+      const timestampA = Date.parse(a.replace('backup_', '').replace(/-/g, '/').replace(/,/g, '').replace(/_/g, ':'));
+      const timestampB = Date.parse(b.replace('backup_', '').replace(/-/g, '/').replace(/,/g, '').replace(/_/g, ':'));
       return timestampB - timestampA;
     });
 
+    console.log(backupFiles);
+
+
     if (backupFiles.length > 0) {
       let latestBackup = path.join(BACKUP_DIR, backupFiles[0]);
+      console.log(latestBackup);
       const backupWithHelpDesk = path.join(latestBackup, 'HelpDesk'); // Append 'HelpDesk' to the latest backup path
 
-        console.log("latestBackup",latestBackup)
+      console.log("latestBackup", latestBackup)
       const child = spawn('mongorestore', [
-        `--uri=${mongoURI}`,
-        `--drop`, // Use --drop to drop the existing database before restoring
+        `--uri=${mongoURI}`, // Use --drop to drop the existing database before restoring
         `--gzip`,
         `${backupWithHelpDesk}`, // Specify the path to the latest backup file
       ]);
-
       child.stdout.on('data', (data) => {
         console.log('stdout:\n', data);
       });

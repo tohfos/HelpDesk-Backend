@@ -3,9 +3,17 @@ const path = require('path');
 const cron = require('node-cron');
 //const { MongoClient } = require('mongodb'); 
 const DB_NAME = 'HelpDesk';
-const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-const ARCHIVE_PATH = path.join(__dirname, 'backups', `backup_${currentDate}`);
+const currentDateTime = new Date().toLocaleString('en-US', {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false // Set to true for 12-hour format, false for 24-hour format
+}).replace(/\//g, '-').replace(/:/g, '_'); // Replace slashes with dashes and colons with underscores
 
+const ARCHIVE_PATH = path.join(__dirname, 'backups', `backup_${currentDateTime}`);
 const mongoURI = process.env.DB_URL;
 cron.schedule('0 0 * * *', () => backupMongoDB());
 
