@@ -20,6 +20,7 @@ const userRouter = require("./Routes/userRoutes");
 const AgentRouter = require("./Routes/AgentRoutes");
 const adminRouter = require("./Routes/adminRoutes");
 const authRouter = require('./Routes/authRoutes');
+const managerRouter = require('./Routes/managerRoutes');
 const userController = require('./controller/userController')
 const AgentController = require('./controller/AgentController')
 const authenticateJWT = require('./Middleware/authenticateJWT');
@@ -54,6 +55,7 @@ app.use('/auth', authRouter);
 app.use(authenticateJWT);
 app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/manager/", managerRouter);
 app.use("/api/v1/admin/", adminRouter);
 app.use('/api/chats', chatRoutes(io));
 
@@ -74,7 +76,7 @@ connectDB();
 mongoose.connection.once('open', () => {
 
   console.log('Connected to MongoDB');
-//   backupMongoDB();
+  //   backupMongoDB();
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
@@ -85,25 +87,3 @@ mongoose.connection.on('error', err => {
   logEvents(`${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`, 'mongoErrLog.log');
 
 });
-
-
-// app.get('/autocomplete', async (req, res) => {
-//   const { q } = req.query;
-
-//   if (!q) {
-//     return res.status(400).json({ error: 'Query parameter "q" is required' });
-//   }
-
-//   try {
-//     // Perform a case-insensitive search on relevant fields in your models
-//     const knowledge = await Knowledge.find({ $text: { $search: q, $caseSensitive: false } }).exec();
- 
-
-//     // Combine and send the results as JSON
-//     const results = [...knowledge];
-//     res.json(results);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });

@@ -34,7 +34,10 @@ const AdminController = {
                 verificationToken: verificationToken
             });
             if (Role == "Agent") {
-
+                const users = await usersModel.find({ Role: "Agent" })
+                if (users.length >= 3) {
+                    return res.status(500).json({ message: "you can't add more than three agents" });
+                }
                 newUser.Highresponsibility = req.body.Highresponsibility;
 
                 newUser.Midresponsibility = req.body.Midresponsibility;
@@ -130,16 +133,46 @@ const AdminController = {
 
     updateRole: async (req, res) => {
         try {
-            const user = await usersModel.findByIdAndUpdate(req.params.id, { Role: req.body.role }, { new: true })
-            return res.status(200).json({ message: "role updated" })
+            const userId = req.params.id;
+            const { role, Highresponsibility, Midresponsibility, Lowresponsibility } = req.body;
+    
+            const users = await usersModel.find({ Role: "Agent" });
+    
+            if (users.length >= 3 && role === "Agent") {
+                return res.status(500).json({ message: "You can't add more than three agents" });
+            }
+    
+            const userWithId = await usersModel.findById(userId);
+    
+            let updateObject = { Role: role };
+    
+            if (userWithId.Role === "Agent" && role !== "Agent") {
+                if(userWithId.assignedTickets.length > 0) {
+                    return res.status(500).json({ message: "You can't change the role of an agent who has assigned tickets" });
+                }
+                updateObject = { ...updateObject, Highresponsibility: null, Midresponsibility: null, Lowresponsibility: null };
+            }
+    
+            if (role === "Agent" && (!Highresponsibility || !Midresponsibility || !Lowresponsibility)) {
+                return res.status(500).json({ message: "Please fill all the fields" });
+            }
+    
+            if (role === "Agent") {
+                updateObject = { ...updateObject, Highresponsibility, Midresponsibility, Lowresponsibility };
+            }
+    
+            const user = await usersModel.findByIdAndUpdate(userId, updateObject, { new: true });
+    
+            return res.status(200).json({ message: "Role updated" });
         } catch (error) {
             return res.status(500).json({ message: error.message });
-
         }
     },
+    
+
     getAllUsers: async (req, res) => {
         try {
-            const users = await usersModel.find().select('profile UserName Role Highresponsibility Midresponsibility Lowresponsibility');
+            const users = await usersModel.find().select('_id profile UserName Role Highresponsibility Midresponsibility Lowresponsibility');
             if (!users || users.length === 0) {
                 return res.status(404).json({ message: 'No users found' });
             }
