@@ -204,7 +204,7 @@ const userController = {
       if (
         !req.body.firstName ||
         !req.body.lastName ||
-        !req.body.email ||
+      //  !req.body.email ||
         !req.body.phone
       ) {
         return res.status(400).json({ message: "Please fill all the fields" });
