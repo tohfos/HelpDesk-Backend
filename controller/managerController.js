@@ -34,7 +34,7 @@ const ManagerController = {
     },
     getReportByID: async (req, res) => {
        try{
-        const report = await ReportsModel.findById(req.params.id);
+        const report = await reportModel.findById(req.params.id);
         return res.status(201).json(report);
         }catch (error) {
             return res.status(500).json({ message: error.message });
@@ -43,7 +43,7 @@ const ManagerController = {
     },
     getReports: async (req, res) => {
         try{
-            const reports = await ReportsModel.find();
+            const reports = await reportModel.find();
             return res.status(201).json(reports);
         }catch (error) {
             return res.status(500).json({ message: error.message });
