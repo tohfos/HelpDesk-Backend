@@ -211,7 +211,7 @@ const userController = {
       }
       user.profile.firstName = req.body.firstName;
       user.profile.lastName = req.body.lastName;
-      user.profile.email = req.body.email;
+      //user.profile.email = req.body.email;
       user.profile.phone = req.body.phone;
       const updatedUser = await user.save();
       return res.status(200).json(updatedUser.profile);
