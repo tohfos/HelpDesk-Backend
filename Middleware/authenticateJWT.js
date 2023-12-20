@@ -14,6 +14,9 @@ const authenticate = (req, res, next) => {
     req.role = decoded.UserInfo.role;
     req.userId = decoded.UserInfo.userid;
     req.email = decoded.UserInfo.email;
+    req.phone = decoded.UserInfo.phone;
+    req.firstname = decoded.UserInfo.firstname;
+    req.lastname = decoded.UserInfo.lastname;
     next();
   });
 };
