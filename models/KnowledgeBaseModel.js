@@ -46,11 +46,9 @@ const knowledgeBasedSchema = new mongoose.Schema(
     },
     Answer: {
       type: String,
-      required: true,
     },
     Description: {
       type: String,
-      required: true,
     },
   },
   // schemaOptions
