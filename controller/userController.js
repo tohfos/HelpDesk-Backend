@@ -222,10 +222,30 @@ const userController = {
 
   getFAQ: async (req, res) => {
     try {
-      const FAQ = await FaqModel.find();
-      return res.status(200).json(FAQ);
+      const FAQ = await KnowledgeBaseModel.find();
+      const filteredFAQ = FAQ.map((entry) => ({
+        Question: entry.Question,
+        Answer: entry.Answer,
+      }));
+      return res.status(200).json(filteredFAQ);
     } catch (error) {
       return res.status(500).json({ message: error.message });
+    }
+  },
+
+  postQuestion : async (req, res) => {
+    try {
+      const { Category, SubCategory, Question } = req.body;
+
+      const question = new KnowledgeBaseModel({
+        Question : Question,
+        Category : Category,
+        SubCategory : SubCategory,
+      })
+      const newQuestion = await question.save();
+      return res.status(200).json(newQuestion);
+    } catch (error) {
+      return res.status(500).json({ message : error.message})
     }
   },
 
