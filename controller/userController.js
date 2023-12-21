@@ -204,14 +204,14 @@ const userController = {
       if (
         !req.body.firstName ||
         !req.body.lastName ||
-        !req.body.email ||
+      //  !req.body.email ||
         !req.body.phone
       ) {
         return res.status(400).json({ message: "Please fill all the fields" });
       }
       user.profile.firstName = req.body.firstName;
       user.profile.lastName = req.body.lastName;
-      user.profile.email = req.body.email;
+      //user.profile.email = req.body.email;
       user.profile.phone = req.body.phone;
       const updatedUser = await user.save();
       return res.status(200).json(updatedUser.profile);
