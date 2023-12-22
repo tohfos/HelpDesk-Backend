@@ -7,26 +7,26 @@ const analyticsModel = require("../models/analyticsModel");
 const ManagerController = {
     generateReport: async (req, res) => {
         try{
-            const ticket = await ticketModel.findById(req.params.id).select("assignedTo rating status updateDate");
+            const ticket = await ticketModel.findById(req.params.ticketId).select("assignedTo rating status updateDate createdBy createdAt updatedAt");
             if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-            var user ="the user that created this ticket is: "+ticket.createdBy;
-            var agent="\nthe agent assigned to this ticket is: "+ticket.assignedTo;
-            var line1 = "\nticket status is: " + ticket.status;
+            var user =`the user that created this ticket is: ${ticket.createdBy}`;
+            var agent=`\nthe agent assigned to this ticket is: ${ticket.assignedTo}`;
+            var line1 = `\nticket status is: ${ticket.status}`;
             if(ticket.status=="Resolved"){
-                var resolutionTime = (ticket.updateDate - ticket.createdAt)/1000/60/60;
-                var line2 = "\nticket was resolved in: " +resolutionTime +" hour(s)";
-                var line3 = "\nthe agent responsible for resolving this ticket got a " +ticket.rating + " star rating for this ticket";
+                var resolutionTime = (ticket.updatedAt - ticket.createdAt)/1000/60/60;
+                var line2 = `\nticket was resolved in: ${resolutionTime} hour(s)`;
+                var line3 = `\nthe agent responsible for resolving this ticket got a ${ticket.rating} star rating for this ticket`;
             }
             else{
-                line2 = "\nticket is not yet resolved";
-                line3 =""; 
+                line2 = `\nticket is not yet resolved`;
+                line3 =``; 
             }
             var details = user+agent+line1+line2+line3;
             const report = new reportModel({
                 ReportDetails: details,
                 user: ticket.assignedTo
             });
-            report=await reportModel.save();
+            await report.save();
             return res.status(201).json(report);
         }catch (error) {
             return res.status(500).json({ message: error.message });
