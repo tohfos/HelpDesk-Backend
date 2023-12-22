@@ -249,12 +249,9 @@ const userController = {
       const knowledge = await KnowledgeBaseModel.find({
         Category: req.params.Category,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
 
-      return res.status(200).json(filteredKnowledge);
+
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -265,11 +262,7 @@ const userController = {
         Category: req.params.Category,
         SubCategory: req.params.SubCategory,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
-      return res.status(200).json(filteredKnowledge);
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
