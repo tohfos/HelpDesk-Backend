@@ -133,16 +133,16 @@ const AgentController = {
     try {
       const { Category, SubCategory, Description } = req.body;
       const newKnowledge = new knowledgeBasedModel({
-        Category,
-        SubCategory,
-        Description
+        Category : Category,
+        SubCategory : SubCategory,
+        Description : Description
       });
-      await newKnowledge.save();
+      const knowledge = await newKnowledge.save();
       return res
         .status(201)
-        .json({ message: "Knowledge entered successfuly", newKnowledge });
+        .json({ message: "Knowledge entered successfuly", knowledge });
     } catch (error) {
-      return res.status(400).json(error.message);
+      return res.status(500).json(error.message);
     }
   },
 };

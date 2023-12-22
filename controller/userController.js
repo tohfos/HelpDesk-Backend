@@ -223,11 +223,7 @@ const userController = {
   getFAQ: async (req, res) => {
     try {
       const FAQ = await KnowledgeBaseModel.find();
-      const filteredFAQ = FAQ.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
-      return res.status(200).json(filteredFAQ);
+      return res.status(200).json(FAQ);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -236,7 +232,6 @@ const userController = {
   postQuestion : async (req, res) => {
     try {
       const { Category, SubCategory, Question } = req.body;
-
       const question = new KnowledgeBaseModel({
         Question : Question,
         Category : Category,
