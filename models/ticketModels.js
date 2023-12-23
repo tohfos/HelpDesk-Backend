@@ -14,7 +14,7 @@ const ticketSchema = new mongoose.Schema(
     },
     ticketCategory: {
       type: String,
-      enum: ["Software", "Hardware", "Network","others"],
+      enum: ["Software", "Hardware", "Network", "Other"],
     },
     priority: {
       type: String,
@@ -26,34 +26,34 @@ const ticketSchema = new mongoose.Schema(
     },
     SubCategory: {
       type: String,
-        required: function (value) {
-          if (this.ticketCategory === "Software") {
-            return [
-              "Operating System",
-              "Application Software",
-              "Custom Software",
-              "Integration Issues",
-            ].includes(value);
-          } else if (this.ticketCategory === "Hardware") {
-            return [
-              "Desktop",
-              "Laptops",
-              "Printers",
-              "Servers",
-              "Networking Equipment",
-            ].includes(value);
-          } else if (this.ticketCategory === "Network") {
-            return [
-              "Email Issues",
-              "Internet Connection Problems",
-              "Website Error",
-            ].includes(value);
-          } else {
-            // Handle other cases or allow any value if needed
-            return true;
-          }
-        },
-       
+      required: function (value) {
+        if (this.ticketCategory === "Software") {
+          return [
+            "Operating System",
+            "Application Software",
+            "Custom Software",
+            "Integration Issues",
+          ].includes(value);
+        } else if (this.ticketCategory === "Hardware") {
+          return [
+            "Desktop",
+            "Laptops",
+            "Printers",
+            "Servers",
+            "Networking Equipment",
+          ].includes(value);
+        } else if (this.ticketCategory === "Network") {
+          return [
+            "Email Issues",
+            "Internet Connection Problems",
+            "Website Error",
+          ].includes(value);
+        } else {
+          // Handle other cases or allow any value if needed
+          return false;
+        }
+      },
+
     },
     title: {
       type: String,
@@ -69,16 +69,16 @@ const ticketSchema = new mongoose.Schema(
       max: 5,
       default: null,
     },
-    UpdateDetails:{
+    UpdateDetails: {
 
-      type:String,
-      required:false
-  },
-  updateDate:{
-    type:Date,
-    default:null,
-    required:false
-  }
+      type: String,
+      required: false
+    },
+    updateDate: {
+      type: Date,
+      default: null,
+      required: false
+    }
   },
   {
     timestamps: true,
