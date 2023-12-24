@@ -13,8 +13,8 @@ router.get('/profile', authorizationJWT(['User', 'Manager', 'Agent', 'Admin']), 
 router.put('/updateProfile', authorizationJWT(['User', 'Manager', 'Agent', 'Admin']), userController.updateProfile);
 router.get('/KnowledgeBase', authorizationJWT(['User', 'Manager', 'Agent', 'Admin']), userController.getFAQ);
 router.post('/postQuestion', authorizationJWT(['User']), userController.postQuestion);
-router.get('/KnowledgeBase/:Category', authorizationJWT(['User']), userController.filterByCategory);
-router.get('/KnowledgeBase/:Category/:SubCategory', authorizationJWT(['User']), userController.filterBySubCategory);
+router.get('/KnowledgeBase/:Category', authorizationJWT(['User', 'Manager', 'Agent', 'Admin']), userController.filterByCategory);
+router.get('/KnowledgeBase/:Category/:SubCategory', authorizationJWT(['User', 'Manager', 'Agent', 'Admin']), userController.filterBySubCategory);
 router.get('/workflow/:Category/:SubCategory', authorizationJWT(['User']), userController.getAutomationAndWorkflow);
 router.post('/openchat/:id', authorizationJWT(['User']), userController.OpenChat);
 
