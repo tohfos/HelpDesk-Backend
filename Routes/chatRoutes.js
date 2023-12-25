@@ -20,7 +20,8 @@ const chatRoutes = (io) => {
 
     socket.on('newMessage', (data) => {
       console.log(data);
-      socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      // socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      io.to(data.RoomId).emit('newMessage', data.message);
     }
     );
 
