@@ -57,7 +57,7 @@ app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/manager/", managerRouter);
 app.use("/api/v1/admin/", adminRouter);
-app.use('/api/chats', chatRoutes(io));
+//app.use('/api/chats', chatRoutes(io));
 
 
 
@@ -73,12 +73,13 @@ const connectDB = async () => {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('joinRoom', (data) => {
-    socket.join(data.RoomId);
-    console.log(`User ${socket.id} joined room ${data.RoomId}`);
-    socket.emit('Welcome', `Hello ${socket.id}! You joined room ${data.RoomId}`);
-    socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
-  });
+  // socket.on('joinRoom', (data) => {
+  //   console.log("join room data: ", data);
+  //   socket.join(data.RoomId);
+  //   console.log(`User ${socket.id} joined room ${data.RoomId}`);
+  //   // socket.emit('Welcome', `Hello ${socket.id}! You joined room ${data.RoomId}`);
+  //   // socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
+  // });
 
   socket.on('newMessage', (data) => {
     console.log(data);
@@ -88,7 +89,8 @@ io.on('connection', (socket) => {
 
   socket.on('sendNotification',(data)=>{
     console.log("user socket id: ", socket.id , "Data: ",data.notification);
-    socket.emit('newNotification', data.notification);
+    //socket.broadcast.to(data.RoomId).emit('newNotification 1', data.notification);
+    io.emit('newNotification 1', data.notification);
   })
 
   // Leave a room when disconnected

@@ -54,7 +54,7 @@ const AgentController = {
   startTicket: async (req, res) => {
     try {
       const ticket = await ticketModel.findById(req.params.id).select("status assignedTo createdBy");
-
+      console.log("ticket status: ",ticket.status)
       if (!ticket) { return res.status(404).json({ message: "Ticket Not Found" }) }
       const userId = ticket.createdBy;
       if (ticket.assignedTo.toString() != req.userId) {
@@ -74,7 +74,7 @@ const AgentController = {
 
 
         sendEmail("Ticket started", `Agent: ${req.user} started testing a ticket `, creatorEmail.profile.email);
-        userEvents.emit('ticketCreated', userId); //TODO            
+        //userEvents.emit('ticketCreated', userId); //TODO            
 
         return res
           .status(200)
@@ -112,7 +112,7 @@ const AgentController = {
         const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
         assigneAgent();
         sendEmailWithHerf("Solved Ticket", `Agent: ${req.user} Solved testing ticket you can rate the ticket here `, creatorEmail.profile.email);
-        userEvents.emit('ticketSolved', userId);//TODO
+        //userEvents.emit('ticketSolved', userId);//TODO
         return res
           .status(200)
           .json({ ticket, msg: "ticket resolved successfully" });
