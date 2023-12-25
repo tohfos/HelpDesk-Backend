@@ -6,32 +6,43 @@ const analyticsModel = require("../models/analyticsModel");
 
 const ManagerController = {
     generateReport: async (req, res) => {
-        try{
-            const ticket = await ticketModel.findById(req.params.ticketId).select("assignedTo rating status updateDate createdBy createdAt updatedAt");
-            if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-            var user =`the user that created this ticket is: ${ticket.createdBy}`;
-            var agent=`\nthe agent assigned to this ticket is: ${ticket.assignedTo}`;
-            var line1 = `\nticket status is: ${ticket.status}`;
-            if(ticket.status=="Resolved"){
-                var resolutionTime = (ticket.updatedAt - ticket.createdAt)/1000/60/60;
-                var line2 = `\nticket was resolved in: ${resolutionTime} hour(s)`;
-                var line3 = `\nthe agent responsible for resolving this ticket got a ${ticket.rating} star rating for this ticket`;
+        try {
+            const ticket = await ticketModel
+                .findById(req.params.ticketId)
+                .select("assignedTo rating status updateDate createdBy createdAt updatedAt");
+    
+            if (!ticket) {
+                return res.status(404).json({ message: "Ticket Not Found" });
             }
-            else{
-                line2 = `\nticket is not yet resolved`;
-                line3 =``; 
+    
+            const user = `The user that created this ticket is: ${ticket.createdBy}`;
+            const agent = `\nThe agent assigned to this ticket is: ${ticket.assignedTo}`;
+            const line1 = `\nTicket status is: ${ticket.status}`;
+    
+            let line2 = "";
+            let line3 = "";
+    
+            if (ticket.status === "Resolved") {
+                const resolutionTime = (ticket.updatedAt - ticket.createdAt) / 1000 / 60 / 60;
+                line2 = `\nTicket was resolved in: ${resolutionTime} hour(s)`;
+                line3 = `\nThe agent responsible for resolving this ticket got a ${ticket.rating} star rating for this ticket`;
+            } else {
+                line2 = "\nTicket is not yet resolved";
             }
-            var details = user+agent+line1+line2+line3;
+    
+            const details = user + agent + line1 + line2 + line3;
+    
             const report = new reportModel({
                 ReportDetails: details,
-                user: ticket.assignedTo
+                user: ticket.assignedTo,
             });
             await report.save();
             return res.status(201).json(report);
-        }catch (error) {
+        } catch (error) {
             return res.status(500).json({ message: error.message });
-          }
-    },
+        }
+    }
+    ,
     getReportByID: async (req, res) => {
        try{
         const report = await reportModel.findById(req.params.id);

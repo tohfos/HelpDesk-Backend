@@ -204,14 +204,14 @@ const userController = {
       if (
         !req.body.firstName ||
         !req.body.lastName ||
-        !req.body.email ||
+      //  !req.body.email ||
         !req.body.phone
       ) {
         return res.status(400).json({ message: "Please fill all the fields" });
       }
       user.profile.firstName = req.body.firstName;
       user.profile.lastName = req.body.lastName;
-      user.profile.email = req.body.email;
+      //user.profile.email = req.body.email;
       user.profile.phone = req.body.phone;
       const updatedUser = await user.save();
       return res.status(200).json(updatedUser.profile);
@@ -222,10 +222,25 @@ const userController = {
 
   getFAQ: async (req, res) => {
     try {
-      const FAQ = await FaqModel.find();
+      const FAQ = await KnowledgeBaseModel.find();
       return res.status(200).json(FAQ);
     } catch (error) {
       return res.status(500).json({ message: error.message });
+    }
+  },
+
+  postQuestion : async (req, res) => {
+    try {
+      const { Category, SubCategory, Question } = req.body;
+      const question = new KnowledgeBaseModel({
+        Question : Question,
+        Category : Category,
+        SubCategory : SubCategory,
+      })
+      const newQuestion = await question.save();
+      return res.status(200).json(newQuestion);
+    } catch (error) {
+      return res.status(500).json({ message : error.message})
     }
   },
 
@@ -234,12 +249,9 @@ const userController = {
       const knowledge = await KnowledgeBaseModel.find({
         Category: req.params.Category,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
 
-      return res.status(200).json(filteredKnowledge);
+
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -250,11 +262,7 @@ const userController = {
         Category: req.params.Category,
         SubCategory: req.params.SubCategory,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
-      return res.status(200).json(filteredKnowledge);
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }

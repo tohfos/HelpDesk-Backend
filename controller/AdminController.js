@@ -58,6 +58,8 @@ const AdminController = {
         try {
             const { Category, SubCategory, Question, Answer } = req.body;
             const newQuestion = new FaqModel({
+                Category,
+                SubCategory,
                 Question,
                 Answer,
             });
@@ -72,17 +74,16 @@ const AdminController = {
 
 
         try {
-            const { Category, SubCategory, Question, Answer, Description } =
+            const { Category, SubCategory, Question, Answer } =
                 req.body;
             const newKnowledgeBase = new KnowledgeBaseModel({
                 Category,
                 SubCategory,
                 Question,
                 Answer,
-                Description,
             });
             await newKnowledgeBase.save();
-            res.status(201).json({ message: "Knowledge Base added successfully" });
+            res.status(201).json({ message: "Question added successfully" });
         } catch (error) {
             console.log(error.message);
             res.status(500).json({ message: error.message });

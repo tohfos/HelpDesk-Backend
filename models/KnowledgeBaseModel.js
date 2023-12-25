@@ -42,15 +42,12 @@ const knowledgeBasedSchema = new mongoose.Schema(
     },
     Question: {
       type: String,
-      required: true,
     },
     Answer: {
       type: String,
-      required: true,
     },
     Description: {
       type: String,
-      required: true,
     },
   },
   // schemaOptions
