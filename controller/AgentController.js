@@ -3,7 +3,7 @@ const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 const queueModel = require('../models/queueModel')
-const { userEvents } = require('./userController');
+const { userEvents } = require('../Routes/userRoutes');
 
 const AgentController = {
   getTicket: async (req, res) => {

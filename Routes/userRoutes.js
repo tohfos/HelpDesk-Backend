@@ -3,6 +3,29 @@ const router = express.Router();
 const { userController, userEvents } = require('../controller/userController');
 const authorizationJWT = require("../Middleware/authorizeJWT");
 
+const { EventEmitter } = require('events');// modification
+const userEvents = new EventEmitter();// modification
+
+userEvents.on('ticketSolved', (userId) => {
+
+    const userSocket = io.sockets.connected[userId];
+
+    // Emit the event to the client
+    userSocket.to(userId).emit('ticketSolved', { message: 'Ticket solved!' });
+});
+
+userEvents.on('ticketCreated', (userId) => {
+    Notification.requestPermission().then(perm => {
+        if (perm === "granted") {
+            const notification = new Notification("Ticket Created", {
+                body: `Ticket is created for user ${userId}`,
+                // icon: "../logo.svg",
+                tag: "ticketCreated"
+            });
+        }
+    });
+});
+
 //TODO make reset password accessible to all users
 router.put('/resetPassword', authorizationJWT(['User', 'Manager', 'Agent']), userController.resetPassword);
 router.post('/create', authorizationJWT(['User']), userController.createTicket);
@@ -21,4 +44,5 @@ router.post('/openchat/:id', authorizationJWT(['User']), userController.OpenChat
 
 
 
-module.exports = router;
+
+module.exports = { router, userEvents }

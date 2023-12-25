@@ -54,7 +54,7 @@ app.use(bodyParser.json());
 app.use('/auth', authRouter);
 app.use(authenticateJWT);
 app.use("/api/v1/agent/", AgentRouter);
-app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/user/", userRouter(io));
 app.use("/api/v1/manager/", managerRouter);
 app.use("/api/v1/admin/", adminRouter);
 app.use('/api/chats', chatRoutes(io));
