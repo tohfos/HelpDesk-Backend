@@ -4,6 +4,7 @@ const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
 const queueModel = require('../models/queueModel')
 const { userEvents } = require('./userController');
+const chatsModel = require('../models/chatsModel');
 
 const AgentController = {
   getTicket: async (req, res) => {
@@ -143,6 +144,17 @@ const AgentController = {
       return res.status(500).json(error.message);
     }
   },
+
+  GetAllChats: async (req, res) => { 
+    try {
+      const chats = await chatsModel.find({agentId: req.userId});
+      return res.status(200).json(chats);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
+
 };
 
 

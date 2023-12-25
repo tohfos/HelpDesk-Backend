@@ -11,6 +11,7 @@ router.put('/solveTicket/:id',authorizationJWT(['Agent']),AgentController.solveT
 router.post('/communicate/:id',authorizationJWT(['Agent']),AgentController.communicate);
 router.post('/addWorkFlow', authorizationJWT(['Agent']), AgentController.addWorkFlow);
 router.get('/getOne/:id', authorizationJWT(['Agent']), AgentController.getOneTicket);
+router.get('/GetAllChats', authorizationJWT(['Agent']), AgentController.GetAllChats);
 
 
 module.exports = router;
