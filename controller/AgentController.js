@@ -5,8 +5,6 @@ const usersModel = require("../models/usersModel");
 const queueModel = require('../models/queueModel')
 const { userEvents } = require('./userController');
 
-// const ticketUpdatesModel = require('../models/TicketUpdatesModel')
-
 const AgentController = {
   getTicket: async (req, res) => {
     try {
@@ -76,7 +74,7 @@ const AgentController = {
 
 
         sendEmail("Ticket started", `Agent: ${req.user} started testing a ticket `, creatorEmail.profile.email);
-        userEvents.emit('ticketCreated', userId);//modification            
+        userEvents.emit('ticketCreated', userId); //TODO            
 
         return res
           .status(200)
@@ -114,7 +112,7 @@ const AgentController = {
         const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
         assigneAgent();
         sendEmailWithHerf("Solved Ticket", `Agent: ${req.user} Solved testing ticket you can rate the ticket here `, creatorEmail.profile.email);
-        userEvents.emit('ticketSolved', userId);//modification
+        userEvents.emit('ticketSolved', userId);//TODO
         return res
           .status(200)
           .json({ ticket, msg: "ticket resolved successfully" });
