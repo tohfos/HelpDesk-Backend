@@ -70,6 +70,34 @@ const connectDB = async () => {
 
 }
 
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  socket.on('joinRoom', (data) => {
+    socket.join(data.RoomId);
+    console.log(`User ${socket.id} joined room ${data.RoomId}`);
+    socket.emit('Welcome', `Hello ${socket.id}! You joined room ${data.RoomId}`);
+    socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
+  });
+
+  socket.on('newMessage', (data) => {
+    console.log(data);
+    socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+  }
+  );
+
+  socket.on('sendNotification',(data)=>{
+    console.log("user socket id: ", socket.id , "Data: ",data.notification);
+    socket.emit('newNotification', data.notification);
+  })
+
+  // Leave a room when disconnected
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+    socket.leaveAll(); // Leave all rooms
+  });
+});
+
 
 connectDB();
 
