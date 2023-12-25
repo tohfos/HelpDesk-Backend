@@ -20,42 +20,44 @@ const userSchema = new mongoose.Schema(
             type: String,
             minLength: 8,
             maxLength: 64,
-            
+
             required: true
         },
         Role: {
             type: String,
-            enum: ['User', 'Admin', 'Agent','Manager'],
+            enum: ['User', 'Admin', 'Agent', 'Manager'],
             default: 'User'
         },
         verificationToken: {
             type: String,
             default: null, // Set default as null initially
-          },
+        },
 
         tickets: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tickets' }],
+
+        Notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
 
         responsibility: {
             type: String,
             enum: ['Software', 'Hardware', 'Network'],
-            
+
             required: function () {
                 return this.Role === 'Agent';
             },
         },
         firstTime: {
             type: Boolean,
-            default: true 
-          },
+            default: true
+        },
     } // define attr
     ,
     {
         strict: true,
         timestamps: true,
     });
-    userSchema.statics.findByVerificationToken = function (token) {
-        return this.findOne({ verificationToken: token });
-      };
+userSchema.statics.findByVerificationToken = function (token) {
+    return this.findOne({ verificationToken: token });
+};
 module.exports = mongoose.model('User', userSchema);
 
 

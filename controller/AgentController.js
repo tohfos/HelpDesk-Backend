@@ -2,6 +2,7 @@ const ticketModel = require("../models/ticketModels");
 const knowledgeBasedModel = require("../models/KnowledgeBaseModel");
 const nodemailer = require('nodemailer');
 const usersModel = require("../models/usersModel");
+const notificationsModel = require("../models/notificationsModel")
 const queueModel = require('../models/queueModel')
 const { userEvents } = require('./userController');
 
@@ -72,6 +73,10 @@ const AgentController = {
         //console.log("creatorEmail",creatorEmail.profile.email)
         console.log(req.user)
 
+        const Notification = new notificationsModel({text:`ticket ${ticket.title} is started by agent: ${req.user} `,date : Date.now()});
+        Notification = await Notification.save();
+        
+        
 
         sendEmail("Ticket started", `Agent: ${req.user} started testing a ticket `, creatorEmail.profile.email);
         userEvents.emit('ticketCreated', userId); //TODO            
