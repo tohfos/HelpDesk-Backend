@@ -36,9 +36,7 @@ const ManagerController = {
                 ReportDetails: details,
                 user: ticket.assignedTo,
             });
-    
             await report.save();
-    
             return res.status(201).json(report);
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -101,7 +99,7 @@ const ManagerController = {
                     assignedTo:agent
                 }
             }
-            const result = await Ticket.aggregate([
+            const result = await ticketModel.aggregate([
                 { $match: condition },
                 {
                     $project: {
@@ -134,7 +132,7 @@ const ManagerController = {
                     avgResolutionTime:avgResolutionTimeInHours
                 }
               });
-              analysis=await analyticsModel.save();
+              await analysis.save();
               return res.status(201).json(analysis);
         }catch(error){
             return res.status(500).json({ message: error.message });
@@ -196,14 +194,14 @@ const ManagerController = {
                         startDate:startDate,
                         endDate:endDate
                     },
-                    analyticsFor:'Agent',
+                    analyticsFor:'SubCategory',
                     analyticsDetails:{
                         noOfTickets:count,
                         avgRating:meanRating,
                         avgResolutionTime:avgResolutionTimeInHours
                     }
                   });
-                  analysis=await analyticsModel.save();
+                  await analysis.save();
                   return res.status(201).json(analysis);
             }catch(error){
                 return res.status(500).json({ message: error.message });
@@ -265,14 +263,14 @@ const ManagerController = {
                         startDate:startDate,
                         endDate:endDate
                     },
-                    analyticsFor:'Agent',
+                    analyticsFor:'ticketCategory',
                     analyticsDetails:{
                         noOfTickets:count,
                         avgRating:meanRating,
                         avgResolutionTime:avgResolutionTimeInHours
                     }
                   });
-                  analysis=await analyticsModel.save();
+                  await analysis.save();
                   return res.status(201).json(analysis);
             }catch(error){
                 return res.status(500).json({ message: error.message });
