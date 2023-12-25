@@ -10,34 +10,35 @@ const Queue = require("../queue");
 const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 const { EventEmitter } = require('events');// modification
+const notificationsModel = require("../models/notificationsModel");
 const userEvents = new EventEmitter();// modification
 
-userEvents.on('ticketSolved', (userId) => {
-  Notification.requestPermission.then(perm =>  {
-    if(perm=== "granted"){
-      const notification =new Notification("ticket is solved" , {
-      body: `ticket is solved for user ${userId}`,
-      //icon: "../logo.svg",
-      tag:"ticket solved"
-          });
-    }
-  })
-})
+// userEvents.on('ticketSolved', (userId) => {
+//   Notification.requestPermission.then(perm =>  {
+//     if(perm=== "granted"){
+//       const notification =new Notification("ticket is solved" , {
+//       body: `ticket is solved for user ${userId}`,
+//       //icon: "../logo.svg",
+//       tag:"ticket solved"
+//           });
+//     }
+//   })
+// })
 
 
 
 
-userEvents.on('ticketCreated', (userId) => {
-  Notification.requestPermission.then(perm =>  {
-    if(perm=== "granted"){
-      const notification =new Notification("ticket is created" , {
-      body: `ticket is Created for user ${userId}`,
-      //icon: "../logo.svg",
-      tag:"ticket created"
-          });
-    }
-  })
-})
+// userEvents.on('ticketCreated', (userId) => {
+//   Notification.requestPermission.then(perm =>  {
+//     if(perm=== "granted"){
+//       const notification =new Notification("ticket is created" , {
+//       body: `ticket is Created for user ${userId}`,
+//       //icon: "../logo.svg",
+//       tag:"ticket created"
+//           });
+//     }
+//   })
+// })
 const userController = {
   
   createTicket: async (req,res)=>{
@@ -194,6 +195,18 @@ const userController = {
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
+  },
+  getnotifcations:async(req,res)=>{
+    try {
+      const notifcations=await notificationsModel.find({userid:req.userId}) ;
+      return res.status(200).json({message:notifcations});
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+
+    }
+
+
+
   },
   updateProfile: async (req, res) => {
     try {

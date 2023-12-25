@@ -18,6 +18,7 @@ router.get('/KnowledgeBase/:Category/:SubCategory', authorizationJWT(['User', 'M
 router.get('/workflow/:Category/:SubCategory', authorizationJWT(['User']), userController.getAutomationAndWorkflow);
 router.post('/openchat/:id', authorizationJWT(['User']), userController.OpenChat);
 
+router.post('/getnotifcations', authorizationJWT(['User']), userController.getnotifcations);
 
 
 

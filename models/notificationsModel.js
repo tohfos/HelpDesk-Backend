@@ -10,7 +10,12 @@ const NotificationSchema = new mongoose.Schema(
     date:{
         type:Date,
         required:true
-    }
+    },
+    userid: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
   },
   {
     strict: true,
@@ -18,6 +23,4 @@ const NotificationSchema = new mongoose.Schema(
   }
 );
 
-const notificationModel = mongoose.model('Log', NotificationSchema);
-
-module.exports = { notificationModel }; 
+module.exports = mongoose.model("notification", NotificationSchema);

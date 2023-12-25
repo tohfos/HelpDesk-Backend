@@ -5,6 +5,7 @@ const usersModel = require("../models/usersModel");
 const notificationsModel = require("../models/notificationsModel")
 const queueModel = require('../models/queueModel')
 const { userEvents } = require('./userController');
+// const userModel = require("../models/userModel");
 
 const AgentController = {
   getTicket: async (req, res) => {
@@ -71,10 +72,10 @@ const AgentController = {
 
         const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
         //console.log("creatorEmail",creatorEmail.profile.email)
-        console.log(req.user)
 
-        const Notification = new notificationsModel({text:`ticket ${ticket.title} is started by agent: ${req.user} `,date : Date.now()});
-        Notification = await Notification.save();
+        const Notification = new notificationsModel({text:`ticket ${ticket.title} is started by agent: ${req.user} `,date : Date.now(),userid:userId});
+        const newNotification = await Notification.save();
+       
         
         
 
@@ -89,6 +90,7 @@ const AgentController = {
 
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).json({ message: error.message });
     }
   },
@@ -115,8 +117,14 @@ const AgentController = {
         );
         console.log("after removing ticket", updatedUser)
         const creatorEmail = await usersModel.findById(ticket.createdBy.toString())
-        assigneAgent();
+
+        const Notification = new notificationsModel({text:`ticket ${ticket.title} is solved by agent: ${req.user} `,date : Date.now(),userid:userId });
+        const newNotification = await Notification.save();
+       
+     
         sendEmailWithHerf("Solved Ticket", `Agent: ${req.user} Solved testing ticket you can rate the ticket here `, creatorEmail.profile.email);
+        assigneAgent();
+
         userEvents.emit('ticketSolved', userId);//TODO
         return res
           .status(200)
