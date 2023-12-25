@@ -34,15 +34,20 @@ const chatRoutes = (io) => {
   router.get('/:ticketId', async (req, res) => {
     try {
       const ticketId = req.params.ticketId;
-
       const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
+
       if (!chats) {
         res.status(401).json({ message: 'no chat found' });
       }
 
-      if (req.userId != chats.userId || req.userId != chats.agentId) {
+      if (req.role === "User" && req.userId != chats.userId) {
         return res.status(500).json({ error: 'not your chat' });
       }
+
+      if (req.role === "Agent" && req.userId != chats.agentId) {
+        return res.status(500).json({ error: 'not your chat' });
+      }
+
       res.json(chats);
     } catch (error) {
       console.error(error);
@@ -54,13 +59,22 @@ const chatRoutes = (io) => {
   router.post('/:ticketId', async (req, res) => {
 
     try {
+
+      console.log(req.params.ticketId);
+
       const ticket = await ticketModel.findById(req.params.ticketId).select("createdBy assignedTo");
+
+      console.log(ticket);
 
       if (!ticket) {
         return res.status(404).json({ message: 'Ticket not found' });
       }
 
-      if(req.userId != ticket.createdBy || req.userId != ticket.assignedTo){
+      if (req.role === "User" && req.userId != ticket.userId) {
+        return res.status(500).json({ error: 'not your chat' });
+      }
+
+      if (req.role === "Agent" && req.userId != ticket.agentId) {
         return res.status(500).json({ error: 'not your chat' });
       }
 
