@@ -75,7 +75,7 @@ const userController = {
 
         console.log(newChat);
         sendEmail(`Ticket created ${newticket.title}` ,`Ticket Created And Their is Chat Opend For You ` ,req.email);
-        return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat});
+        return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat, message : 'Ticket has been created'});
       }
 
       const newticket= await ticket.save();
