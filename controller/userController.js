@@ -294,6 +294,16 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+
+    GetAllChats: async (req, res) => { 
+      try {
+        const chats = await chatsModel.find({userId: req.userId});
+        const tickets = await ticketModel.find({ _id : chats.ticketId});
+        return res.status(200).json(chats);
+      } catch (error) {
+        return res.status(500).json({ message: error.message });
+      }
+    },
   resetPassword: async (req, res) => {
     const oldpass = req.body.oldpass;
     const newpass = req.body.newpass;
@@ -454,6 +464,10 @@ const addtoQ = async (ticket) => {
       // Handle any other cases here
       break;
   }
+
+
+
+
 };
 
 module.exports = {userController,userEvents};
