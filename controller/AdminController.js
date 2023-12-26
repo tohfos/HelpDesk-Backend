@@ -12,7 +12,7 @@ const backupMongoDB = require("../backup");
 const restoreMongoDB = require("../restore");
 const usersModel = require('../models/usersModel');
 const UserPreferences = require('../models/UserPreferences')
-
+const LogModel = require('../models/LogModel')
 
 
 
@@ -200,8 +200,10 @@ const AdminController = {
         }
     },
     getLogs: async (req, res) => {
+        console.log("getLogs");
         try {
             const logs = await LogModel.find();
+            console.log(logs);
             return res.status(200).json(logs);
         } catch (error) {
             return res.status(500).json({ message: error.message });
