@@ -121,7 +121,7 @@ const ManagerController = {
                 })
                 console.log(analysis)
                 await analysis.save()
-                return res.status(201).json({analysis: analysis});
+                return res.status(201).json(analysis);
         }
         catch(error){
             return res.status(500).json({ message: error.message });
