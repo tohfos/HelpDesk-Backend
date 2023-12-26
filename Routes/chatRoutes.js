@@ -122,6 +122,7 @@ res.json(response);
         receiverId: receiverId,
         message:msg.content,
         iv:msg.iv,
+        title:ticket.title
     };
     console.log(newChatMessage)
 

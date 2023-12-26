@@ -21,8 +21,8 @@ const chatSchema = new mongoose.Schema({
         timestamp: { type: Date, default: Date.now },
         
     }
-]
-
+],
+    title:{ type: String, required: true },
 }
 ,
 {
