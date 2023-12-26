@@ -198,6 +198,14 @@ const AdminController = {
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
+    },
+    getLogs: async (req, res) => {
+        try {
+            const logs = await LogModel.find();
+            return res.status(200).json(logs);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
     }
 
 }

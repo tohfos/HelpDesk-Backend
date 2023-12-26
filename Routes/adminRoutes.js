@@ -14,6 +14,7 @@ router.post('/backup', authorizationJWT(['Admin']), AdminController.backup)
 router.post('/restore', authorizationJWT(['Admin']), AdminController.restore)
 router.put('/updateRole/:id', authorizationJWT(['Admin']), AdminController.updateRole);
 router.get('/getallusers', authorizationJWT(['Admin']), AdminController.getAllUsers);
+router.get('/getLogs', authorizationJWT(['Admin']), AdminController.getLogs);
 
 
 module.exports = router;

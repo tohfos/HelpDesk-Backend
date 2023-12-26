@@ -42,10 +42,9 @@ const io = socketIO(server, {
   }
 });
 
-
+//app.use(logger);
 app.use(express.json());
 app.use(cookieParser());
-app.use(logger);
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
@@ -59,7 +58,7 @@ app.use("/api/v1/manager/", managerRouter);
 app.use("/api/v1/admin/", adminRouter);
 app.use('/api/v1/chats/', chatRoutes(io));
 
-
+app.use(errorHandler)
 
 const connectDB = async () => {
   try {
@@ -80,7 +79,7 @@ mongoose.connection.once('open', () => {
   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 });
-app.use(errorHandler)
+
 
 mongoose.connection.on('error', err => {
   console.log(err);
