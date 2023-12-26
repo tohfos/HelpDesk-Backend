@@ -35,7 +35,7 @@ const chatRoutes = (io) => {
       socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
     });
 
-    
+
     socket.on('newMessage', (data) => {
       console.log(data);
       // socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
@@ -53,6 +53,7 @@ const chatRoutes = (io) => {
   router.get('/:ticketId', async (req, res) => {
     try {
       const ticketId = req.params.ticketId;
+      const title = await ticketModel.findById(ticketId);
       const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
 
       if (!chats) {
@@ -66,14 +67,7 @@ const chatRoutes = (io) => {
       if (req.role === "Agent" && req.userId != chats.agentId) {
         return res.status(500).json({ error: 'not your chat' });
       }
-      // console.log(chats);
-      // console.log(chats.message);
-      // console.log(chats.message[chats.message.length-1].message,chats.message[chats.message.length-1].iv);
-
-    //   res.json({
-    //     ...chats.toObject(),
-    //     message: chats.message.map(m => ({ ...m, message : decrypt(m.message,m.iv) }))
-    // });
+    
  
 const decryptedMessages = chats.message.map(m => ({
     ...m.toObject(),
@@ -85,7 +79,7 @@ const response = {
     ...chats.toObject(),
     message: decryptedMessages
 };
-res.json(response);
+res.json(response,title.title);
 
       } catch (error) {
       console.error(error);
