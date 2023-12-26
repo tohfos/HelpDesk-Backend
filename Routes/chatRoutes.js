@@ -20,7 +20,8 @@ const chatRoutes = (io) => {
 
     socket.on('newMessage', (data) => {
       console.log(data);
-      socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      // socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      io.to(data.RoomId).emit('newMessage', data.message);
     }
     );
 
@@ -70,13 +71,7 @@ const chatRoutes = (io) => {
         return res.status(404).json({ message: 'Ticket not found' });
       }
 
-      if (req.role === "User" && req.userId != ticket.userId) {
-        return res.status(500).json({ error: 'not your chat' });
-      }
 
-      if (req.role === "Agent" && req.userId != ticket.agentId) {
-        return res.status(500).json({ error: 'not your chat' });
-      }
 
       const user = ticket.createdBy;
       const agent = ticket.assignedTo;
@@ -90,11 +85,11 @@ const chatRoutes = (io) => {
       }
 
       const newChatMessage = {
-        senderId: req.userId,
+        sender: sender,
         receiverId: receiverId,
-        message: req.body.messages,
+        message: req.body.message,
       };
-      //console.log(newChatMessage)
+      console.log(newChatMessage)
 
       const chat = await chatsModel.findOneAndUpdate(
         { ticketId: ticket._id, userId: user, agentId: agent },

@@ -36,8 +36,8 @@ const ManagerController = {
                 ReportDetails: details,
                 user: ticket.assignedTo,
             });
-            await report.save();
-            return res.status(201).json(report);
+            const newReport = await report.save();
+            return res.status(201).json(newReport);
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
