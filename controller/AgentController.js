@@ -46,7 +46,7 @@ const AgentController = {
           .status(404)
           .json({ message: "ticket is not in progress " });
       }
-      sendEmail(ticket.title, req.body.body, creatorEmail.profile.email);
+      sendEmail(ticket.title,`Send By ${req.userId} ${req.body.body}`, creatorEmail.profile.email);
       return res.status(200).json({ message: "email sent" })
     } catch (error) {
       return res.status(500).json({ message: error.message });
