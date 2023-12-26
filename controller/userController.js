@@ -85,6 +85,10 @@ const userController = {
       await addtoQ(newticket);
       await assigneAgent();
 
+      const actualTicket = await ticketModel.findById(newticket._id)
+      const Notification = new notificationsModel({text:`Ticket ${actualTicket.title} has been assigned to you`,date : Date.now(), userid: actualTicket.assignedTo});
+      await Notification.save();
+
       sendEmail(`Ticket created ${newticket.title}`, `Ticket created `, req.email);
 
       return res.status(201).json({ "ticket": newticket, "hasChat": newticket.hasChat });
@@ -429,6 +433,7 @@ const assignHelper = async (queue) => {
       );
       await queue.popTicket();
     }
+    
   }
 };
 
