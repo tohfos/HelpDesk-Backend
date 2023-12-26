@@ -57,7 +57,7 @@ app.use("/api/v1/agent/", AgentRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/manager/", managerRouter);
 app.use("/api/v1/admin/", adminRouter);
-app.use('/api/chats', chatRoutes(io));
+app.use('/api/v1/chats/', chatRoutes(io));
 
 
 

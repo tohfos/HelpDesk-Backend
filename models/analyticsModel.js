@@ -14,9 +14,11 @@ const analyticsSchema = new mongoose.Schema({
         required:true
     },
     analyticsDetails:{
-        noOfTickets:{type:Number,required:true},
-        avgRating:{type:Number,required:true},
-        avgResolutionTime:{type:Number,required:true}
+        ticketId:[{type: mongoose.Schema.Types.ObjectId,
+            ref: "ticket",
+            required: true,}],
+        Rating:[{type:Number,required:false}],
+        ResolutionTime:[{type:Number,required:false}]
     }
 
 },

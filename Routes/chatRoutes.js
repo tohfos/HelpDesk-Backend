@@ -20,7 +20,8 @@ const chatRoutes = (io) => {
 
     socket.on('newMessage', (data) => {
       console.log(data);
-      socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      // socket.broadcast.to(data.RoomId).emit('newMessage', data.message);
+      io.to(data.RoomId).emit('newMessage', data.message);
     }
     );
 
@@ -34,15 +35,20 @@ const chatRoutes = (io) => {
   router.get('/:ticketId', async (req, res) => {
     try {
       const ticketId = req.params.ticketId;
-
       const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
+
       if (!chats) {
         res.status(401).json({ message: 'no chat found' });
       }
 
-      if (req.userId != chats.userId || req.userId != chats.agentId) {
+      if (req.role === "User" && req.userId != chats.userId) {
         return res.status(500).json({ error: 'not your chat' });
       }
+
+      if (req.role === "Agent" && req.userId != chats.agentId) {
+        return res.status(500).json({ error: 'not your chat' });
+      }
+
       res.json(chats);
     } catch (error) {
       console.error(error);
@@ -54,15 +60,18 @@ const chatRoutes = (io) => {
   router.post('/:ticketId', async (req, res) => {
 
     try {
+
+      console.log(req.params.ticketId);
+
       const ticket = await ticketModel.findById(req.params.ticketId).select("createdBy assignedTo");
+
+      console.log(ticket);
 
       if (!ticket) {
         return res.status(404).json({ message: 'Ticket not found' });
       }
 
-      if(req.userId != ticket.createdBy || req.userId != ticket.assignedTo){
-        return res.status(500).json({ error: 'not your chat' });
-      }
+
 
       const user = ticket.createdBy;
       const agent = ticket.assignedTo;
@@ -76,11 +85,11 @@ const chatRoutes = (io) => {
       }
 
       const newChatMessage = {
-        senderId: req.userId,
+        sender: sender,
         receiverId: receiverId,
-        message: req.body.messages,
+        message: req.body.message,
       };
-      //console.log(newChatMessage)
+      console.log(newChatMessage)
 
       const chat = await chatsModel.findOneAndUpdate(
         { ticketId: ticket._id, userId: user, agentId: agent },

@@ -19,6 +19,7 @@ router.get('/workflow/:Category/:SubCategory', authorizationJWT(['User']), userC
 router.post('/openchat/:id', authorizationJWT(['User']), userController.OpenChat);
 router.get('/GetAllChats', authorizationJWT(['User']), userController.GetAllChats);
 
+router.post('/getnotifcations', authorizationJWT(['User']), userController.getnotifcations);
 
 
 
