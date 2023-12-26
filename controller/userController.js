@@ -11,6 +11,7 @@ const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 const { EventEmitter } = require('events');// modification
 const notificationsModel = require("../models/notificationsModel");
+const { response } = require("express");
 const userEvents = new EventEmitter();// modification
 
 // userEvents.on('ticketSolved', (userId) => {
@@ -68,7 +69,7 @@ const userController = {
         console.log("Agents:", agents)
         ticket.assignedTo = randomAgent._id;
 
-        const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": randomAgent._id })
+        const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": randomAgent._id , "title": ticket.title})
         const newChat = await chat.save();
 
         ticket.hasChat = true
@@ -132,7 +133,7 @@ const userController = {
     if (ticket.status != "Resolved") {
       return res.status(500).json({ message: "Ticket is Not Resolved" });
     }
-    const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": ticket.assignedTo })
+    const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": ticket.assignedTo, "title": ticket.title })
     const newChat = await chat.save();
 
     ticket.hasChat = true
@@ -298,7 +299,7 @@ const userController = {
   GetAllChats: async (req, res) => {
     try {
       const chats = await chatsModel.find({ userId: req.userId });
-      const tickets = await ticketModel.find({ _id: chats.ticketId });
+     
       return res.status(200).json(chats);
     } catch (error) {
       return res.status(500).json({ message: error.message });

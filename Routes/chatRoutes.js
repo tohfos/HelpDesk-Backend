@@ -77,9 +77,10 @@ const decryptedMessages = chats.message.map(m => ({
 // Construct the response object with decrypted messages
 const response = {
     ...chats.toObject(),
-    message: decryptedMessages
+    message: decryptedMessages,
+    title:title.title
 };
-res.json(response,title.title);
+res.json(response);
 
       } catch (error) {
       console.error(error);
@@ -121,6 +122,7 @@ res.json(response,title.title);
         receiverId: receiverId,
         message:msg.content,
         iv:msg.iv,
+        title:ticket.title
     };
     console.log(newChatMessage)
 
