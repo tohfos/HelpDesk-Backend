@@ -3,7 +3,24 @@ const router = express.Router();
 const ticketModel = require('../models/ticketModels');
 const chatsModel = require('../models/chatsModel');
 
+const crypto = require('crypto');
+const algorithm = 'aes-256-ctr';
+const secretKey = process.env.KEY; // replace with your own secret key
+const iv = crypto.randomBytes(16);
 
+const encrypt = (text) => {
+    const cipher = crypto.createCipheriv(algorithm, secretKey, iv);
+    const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
+    return {
+        iv: iv.toString('hex'),
+        content: encrypted.toString('hex')
+    };
+};
+const decrypt = (hash,iv) => {
+    const decipher = crypto.createDecipheriv(algorithm, secretKey, Buffer.from(iv, 'hex'));
+    const decrpyted = Buffer.concat([decipher.update(Buffer.from(hash, 'hex')), decipher.final()]);
+    return decrpyted.toString();
+};
 // Updated function to accept the io object as a parameter
 const chatRoutes = (io) => {
 
@@ -17,6 +34,7 @@ const chatRoutes = (io) => {
       socket.emit('Welcome', `Hello ${socket.id}! You joined room ${data.RoomId}`);
       socket.broadcast.to(data.RoomId).emit('message', `User ${socket.id} joined room ${data.RoomId}`);
     });
+
 
     socket.on('newMessage', (data) => {
       console.log(data);
@@ -35,6 +53,7 @@ const chatRoutes = (io) => {
   router.get('/:ticketId', async (req, res) => {
     try {
       const ticketId = req.params.ticketId;
+      const title = await ticketModel.findById(ticketId);
       const chats = await chatsModel.findOne({ ticketId }).populate('message.sender.UserName message.receiverId.UserName');
 
       if (!chats) {
@@ -48,9 +67,21 @@ const chatRoutes = (io) => {
       if (req.role === "Agent" && req.userId != chats.agentId) {
         return res.status(500).json({ error: 'not your chat' });
       }
+    
+ 
+const decryptedMessages = chats.message.map(m => ({
+    ...m.toObject(),
+    message: decrypt(m.message, m.iv)
+}));
 
-      res.json(chats);
-    } catch (error) {
+// Construct the response object with decrypted messages
+const response = {
+    ...chats.toObject(),
+    message: decryptedMessages
+};
+res.json(response,title.title);
+
+      } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
     }
@@ -83,13 +114,15 @@ const chatRoutes = (io) => {
       } else {
         receiverId = user;
       }
-
+      const msg =encrypt(req.body.message);
+ 
       const newChatMessage = {
         sender: sender,
         receiverId: receiverId,
-        message: req.body.message,
-      };
-      console.log(newChatMessage)
+        message:msg.content,
+        iv:msg.iv,
+    };
+    console.log(newChatMessage)
 
       const chat = await chatsModel.findOneAndUpdate(
         { ticketId: ticket._id, userId: user, agentId: agent },
