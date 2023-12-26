@@ -6,35 +6,46 @@ const analyticsModel = require("../models/analyticsModel");
 
 const ManagerController = {
     generateReport: async (req, res) => {
-        try{
-            const ticket = await ticketModel.findById(req.params.id).select("assignedTo rating status updateDate");
-            if(!ticket){return res.status(404).json({message:"Ticket Not Found"})}
-            var user ="the user that created this ticket is: "+ticket.createdBy;
-            var agent="\nthe agent assigned to this ticket is: "+ticket.assignedTo;
-            var line1 = "\nticket status is: " + ticket.status;
-            if(ticket.status=="Resolved"){
-                var resolutionTime = (ticket.updateDate - ticket.createdAt)/1000/60/60;
-                var line2 = "\nticket was resolved in: " +resolutionTime +" hour(s)";
-                var line3 = "\nthe agent responsible for resolving this ticket got a " +ticket.rating + " star rating for this ticket";
+        try {
+            const ticket = await ticketModel
+                .findById(req.params.ticketId)
+                .select("assignedTo rating status updateDate createdBy createdAt updatedAt");
+    
+            if (!ticket) {
+                return res.status(404).json({ message: "Ticket Not Found" });
             }
-            else{
-                line2 = "\nticket is not yet resolved";
-                line3 =""; 
+    
+            const user = `The user that created this ticket is: ${ticket.createdBy}`;
+            const agent = `\nThe agent assigned to this ticket is: ${ticket.assignedTo}`;
+            const line1 = `\nTicket status is: ${ticket.status}`;
+    
+            let line2 = "";
+            let line3 = "";
+    
+            if (ticket.status === "Resolved") {
+                const resolutionTime = (ticket.updatedAt - ticket.createdAt) / 1000 / 60 / 60;
+                line2 = `\nTicket was resolved in: ${resolutionTime} hour(s)`;
+                line3 = `\nThe agent responsible for resolving this ticket got a ${ticket.rating} star rating for this ticket`;
+            } else {
+                line2 = "\nTicket is not yet resolved";
             }
-            var details = user+agent+line1+line2+line3;
+    
+            const details = user + agent + line1 + line2 + line3;
+    
             const report = new reportModel({
                 ReportDetails: details,
-                user: ticket.assignedTo
+                user: ticket.assignedTo,
             });
-            report=await reportModel.save();
+            await report.save();
             return res.status(201).json(report);
-        }catch (error) {
+        } catch (error) {
             return res.status(500).json({ message: error.message });
-          }
-    },
+        }
+    }
+    ,
     getReportByID: async (req, res) => {
        try{
-        const report = await ReportsModel.findById(req.params.id);
+        const report = await reportModel.findById(req.params.id);
         return res.status(201).json(report);
         }catch (error) {
             return res.status(500).json({ message: error.message });
@@ -43,232 +54,188 @@ const ManagerController = {
     },
     getReports: async (req, res) => {
         try{
-            const reports = await ReportsModel.find();
+            const reports = await reportModel.find();
             return res.status(201).json(reports);
         }catch (error) {
             return res.status(500).json({ message: error.message });
             }
     },
-    generateAnalyticsFor: async(req,res) => {
-        try{
-         const analyticsFor = req.body.analysisFor;
-         return analyticsFor; 
-        }catch(error){
-            console.error('Error: ', error);
-        }
+    
+        getAnalyticsDetailsCategory: async (req,res)=>{
 
+            try{
+                const Category = req.params.Category;
+                const startDate= req.body.startDate;
+                const endDate = req.body.endDate;
+                var condition;
+                console.log('1')
+                if(startDate && endDate){
+                    condition = {
+                        createdAt: { $gt: new Date(startDate) },
+                        updatedAt: { $lt: new Date(endDate) },
+                        ticketCategory:Category
+                }
+                }
+                else if(startDate&&!endDate){
+                    condition = {
+                        createdAt: { $gt: new Date(startDate) },
+                        ticketCategory:Category
+                }
+            }
+                else if(!startDate&&endDate){
+                    condition = {
+                        updatedAt: { $lt: new Date(endDate) },
+                        ticketCategory:Category
+                    }
+                }
+                else{
+                    condition = {
+                        ticketCategory:Category
+                    }
+                }
+                console.log('2')
+
+                const tickets = await ticketModel.find(condition).select("rating updatedAt createdAt status _id");
+                console.log('3')
+                console.log(condition)
+                console.log(tickets)
+                let rating = tickets.map(ticket =>ticket.rating && ticket.rating);
+                let resolutionTime = tickets.map(ticket=>ticket.status==='Resolved'? (ticket.updatedAt - ticket.createdAt)/1000/60/60:null);
+                let ticketId = tickets.map(ticket=>ticket._id);
+                
+                console.log('aa')
+                console.log(ticketId)
+                console.log(rating)
+                console.log(resolutionTime)
+                const analysis = new analyticsModel({
+                    timeframe:{
+                        startDate:startDate,
+                        endDate:endDate
+                    },
+                    analyticsFor:'ticketCategory',
+                    analyticsDetails:{
+                        ticketId:ticketId,
+                        Rating:rating,
+                        ResolutionTime:resolutionTime
+                    }
+                })
+                console.log(analysis)
+                await analysis.save()
+                return res.status(201).json({analysis: analysis});
+        }
+        catch(error){
+            return res.status(500).json({ message: error.message });
+        }
     },
-    generateAnalyticsForAgent: async (req,res)=>{
+
+    getAnalyticsDetailsSubCategory: async (req,res)=>{
+
         try{
-            const agent = req.params.id;
+            const SubCategory = req.params.SubCategory;
             const startDate= req.body.startDate;
-            const endDate = req.bdy.endDate;
+            const endDate = req.body.endDate;
             var condition;
             if(startDate && endDate){
                 condition = {
-                    createdAt:{$gt:startDate},
-                    updateDate:{$lt:endDate},
+                    createdAt: { $gt: new Date(startDate) },
+                    updatedAt: { $lt: new Date(endDate) },
+                    SubCategory:SubCategory
+                }
+            }
+            else if(startDate&&!endDate){
+                condition = {
+                    createdAt: { $gt: new Date(startDate) },
+                    SubCategory:SubCategory
+                }
+        }
+            else if(!startDate&&endDate){
+                condition = {
+                    updatedAt: { $lt: new Date(endDate) },
+                    SubCategory:SubCategory
+                }
+            }
+            else{
+                condition = {
+                    SubCategory:SubCategory
+                }
+            }
+            const tickets = await ticketModel.find(condition).select("rating updatedAt createdAt status _id");
+            let rating = tickets.map(ticket =>ticket.rating && ticket.rating);
+            let resolutionTime = tickets.map(ticket=>ticket.status==='Resolved'? (ticket.updatedAt - ticket.createdAt)/1000/60/60:null);
+            let ticketId = tickets.map(ticket=>ticket._id);
+            analysis = new analyticsModel({
+                timeframe:{
+                    startDate:startDate,
+                    endDate:endDate
+                },
+                analyticsFor:'SubCategory',
+                analyticsDetails:{
+                    ticketId:ticketId,
+                    Rating:rating,
+                    ResolutionTime:resolutionTime
+                }
+            })
+            await analysis.save()
+            return res.status(201).json(analysis);
+    }
+    catch(error){
+        return res.status(500).json({ message: error.message });
+    }
+},
+        getAnalyticsDetailsAgent: async (req,res)=>{
+
+            try{
+                const agent = req.params.id;
+                const startDate= req.body.startDate;
+                const endDate = req.body.endDate;
+                var condition;
+                 if(startDate && endDate){
+                    condition = {
+                    createdAt: { $gt: new Date(startDate) },
+                    updatedAt: { $lt: new Date(endDate) },
                     assignedTo:agent
             }
             }
             else if(startDate&&!endDate){
-                 condition = {
-                    createdAt:{$gt:startDate},
+                condition = {
+                    createdAt: { $gt: new Date(startDate) },
                     assignedTo:agent
             }
         }
             else if(!startDate&&endDate){
-                 condition = {
-                    updateDate:{$lt:endDate},
+                condition = {
+                    updatedAt: { $lt: new Date(endDate) },
                     assignedTo:agent
                 }
             }
             else{
-                 condition = {
+                condition = {
                     assignedTo:agent
                 }
             }
-            const result = await Ticket.aggregate([
-                { $match: condition },
-                {
-                    $project: {
-                      resolutionTime: { $subtract: ['$updateDate', '$createdAt'] },
-                    },
-                  },
-                {
-                  $group: {
-                    _id: null,
-                    count: { $sum: 1 },
-                    meanRating: { $avg: '$rating' },
-                    averageResolutionTime: { $avg: '$resolutionTime' },
-                },
-                },
-              ]);
-          
-              const count = result.length > 0 ? result[0].count : null;
-              const meanRating = result.length > 0 ? result[0].meanRating : null;
-              const averageResolutionTime = result.length > 0 ? result[0].averageResolutionTime : null;
-              const avgResolutionTimeInHours=averageResolutionTime/1000/60/60;
-              const analysis = new analyticsModel({
+            const tickets = await ticketModel.find(condition).select("rating updatedAt createdAt status _id");
+            let rating = tickets.map(ticket =>ticket.rating && ticket.rating);
+            let resolutionTime = tickets.map(ticket=>ticket.status==='Resolved'? (ticket.updatedAt - ticket.createdAt)/1000/60/60:null);
+            let ticketId = tickets.map(ticket=>ticket._id);
+            analysis = new analyticsModel({
                 timeframe:{
                     startDate:startDate,
                     endDate:endDate
                 },
                 analyticsFor:'Agent',
                 analyticsDetails:{
-                    noOfTickets:count,
-                    avgRating:meanRating,
-                    avgResolutionTime:avgResolutionTimeInHours
+                    ticketId:ticketId,
+                    Rating:rating,
+                    ResolutionTime:resolutionTime
                 }
-              });
-              analysis=await analyticsModel.save();
-              return res.status(201).json(analysis);
-        }catch(error){
-            return res.status(500).json({ message: error.message });
-        }
-    },
-        generateAnalyticsForSubCategory: async (req,res)=>{
-            try{
-                const SubCategory = req.params.SubCategory;
-                const startDate= req.body.startDate;
-                const endDate = req.bdy.endDate;
-                var condition;
-                if(startDate && endDate){
-                    condition = {
-                        createdAt:{$gt:startDate},
-                        updateDate:{$lt:endDate},
-                        SubCategory:SubCategory
-                }
-                }
-                else if(startDate&&!endDate){
-                    condition = {
-                        createdAt:{$gt:startDate},
-                        SubCategory:SubCategory
-                }
-            }
-                else if(!startDate&&endDate){
-                    condition = {
-                        updateDate:{$lt:endDate},
-                        SubCategory:SubCategory
-                    }
-                }
-                else{
-                    condition = {
-                        SubCategory:SubCategory
-                    }
-                }
-                const result = await Ticket.aggregate([
-                    { $match: condition },
-                    {
-                        $project: {
-                          resolutionTime: { $subtract: ['$updateDate', '$createdAt'] },
-                        },
-                      },
-                    {
-                      $group: {
-                        _id: null,
-                        count: { $sum: 1 },
-                        meanRating: { $avg: '$rating' },
-                        averageResolutionTime: { $avg: '$resolutionTime' },
-                    },
-                    },
-                  ]);
-              
-                  const count = result.length > 0 ? result[0].count : null;
-                  const meanRating = result.length > 0 ? result[0].meanRating : null;
-                  const averageResolutionTime = result.length > 0 ? result[0].averageResolutionTime : null;
-                  const avgResolutionTimeInHours=averageResolutionTime/1000/60/60;
-                  const analysis = new analyticsModel({
-                    timeframe:{
-                        startDate:startDate,
-                        endDate:endDate
-                    },
-                    analyticsFor:'Agent',
-                    analyticsDetails:{
-                        noOfTickets:count,
-                        avgRating:meanRating,
-                        avgResolutionTime:avgResolutionTimeInHours
-                    }
-                  });
-                  analysis=await analyticsModel.save();
-                  return res.status(201).json(analysis);
-            }catch(error){
-                return res.status(500).json({ message: error.message });
-            }
-        },
-        generateAnalyticsForCategory:  async (req,res)=>{
-            try{
-                const Category = req.params.Category;
-                const startDate= req.body.startDate;
-                const endDate = req.bdy.endDate;
-                var condition;
-                if(startDate && endDate){
-                    condition = {
-                        createdAt:{$gt:startDate},
-                        updateDate:{$lt:endDate},
-                        ticketCategory:Category
-                }
-                }
-                else if(startDate&&!endDate){
-                    condition = {
-                        createdAt:{$gt:startDate},
-                        ticketCategory:Category
-                }
-            }
-                else if(!startDate&&endDate){
-                    condition = {
-                        updateDate:{$lt:endDate},
-                        ticketCategory:Category
-                    }
-                }
-                else{
-                    condition = {
-                        ticketCategory:Category               
-                    }
-                }
-                const result = await Ticket.aggregate([
-                    { $match: condition },
-                    {
-                        $project: {
-                          resolutionTime: { $subtract: ['$updateDate', '$createdAt'] },
-                        },
-                      },
-                    {
-                      $group: {
-                        _id: null,
-                        count: { $sum: 1 },
-                        meanRating: { $avg: '$rating' },
-                        averageResolutionTime: { $avg: '$resolutionTime' },
-                    },
-                    },
-                  ]);
-              
-                  const count = result.length > 0 ? result[0].count : null;
-                  const meanRating = result.length > 0 ? result[0].meanRating : null;
-                  const averageResolutionTime = result.length > 0 ? result[0].averageResolutionTime : null;
-                  const avgResolutionTimeInHours=averageResolutionTime/1000/60/60;
-                  const analysis = new analyticsModel({
-                    timeframe:{
-                        startDate:startDate,
-                        endDate:endDate
-                    },
-                    analyticsFor:'Agent',
-                    analyticsDetails:{
-                        noOfTickets:count,
-                        avgRating:meanRating,
-                        avgResolutionTime:avgResolutionTimeInHours
-                    }
-                  });
-                  analysis=await analyticsModel.save();
-                  return res.status(201).json(analysis);
-            }catch(error){
-                return res.status(500).json({ message: error.message });
-            }
-        },
-
-
-
-
+            })
+            await analysis.save()
+            return res.status(201).json(analysis);
+    }
+    catch(error){
+        return res.status(500).json({ message: error.message });
+    }
+    }
 
 };
 

@@ -36,7 +36,7 @@ const AdminController = {
             if (Role == "Agent") {
                 const users = await usersModel.find({ Role: "Agent" })
                 if (users.length >= 3) {
-                    return res.status(500).json({ message: "you can't add more than three agents" });
+                    return res.status(403).json({ message: "you can't add more than three agents" });
                 }
                 newUser.Highresponsibility = req.body.Highresponsibility;
 
@@ -58,6 +58,8 @@ const AdminController = {
         try {
             const { Category, SubCategory, Question, Answer } = req.body;
             const newQuestion = new FaqModel({
+                Category,
+                SubCategory,
                 Question,
                 Answer,
             });
@@ -72,17 +74,16 @@ const AdminController = {
 
 
         try {
-            const { Category, SubCategory, Question, Answer, Description } =
+            const { Category, SubCategory, Question, Answer } =
                 req.body;
             const newKnowledgeBase = new KnowledgeBaseModel({
                 Category,
                 SubCategory,
                 Question,
                 Answer,
-                Description,
             });
             await newKnowledgeBase.save();
-            res.status(201).json({ message: "Knowledge Base added successfully" });
+            res.status(201).json({ message: "Question added successfully" });
         } catch (error) {
             console.log(error.message);
             res.status(500).json({ message: error.message });
@@ -139,7 +140,7 @@ const AdminController = {
             const users = await usersModel.find({ Role: "Agent" });
     
             if (users.length >= 3 && role === "Agent") {
-                return res.status(500).json({ message: "You can't add more than three agents" });
+                return res.status(403).json({ message: "You can't add more than three agents" });
             }
     
             const userWithId = await usersModel.findById(userId);
@@ -148,13 +149,13 @@ const AdminController = {
     
             if (userWithId.Role === "Agent" && role !== "Agent") {
                 if(userWithId.assignedTickets.length > 0) {
-                    return res.status(500).json({ message: "You can't change the role of an agent who has assigned tickets" });
+                    return res.status(403).json({ message: "You can't change the role of an agent who has assigned tickets" });
                 }
                 updateObject = { ...updateObject, Highresponsibility: null, Midresponsibility: null, Lowresponsibility: null };
             }
     
             if (role === "Agent" && (!Highresponsibility || !Midresponsibility || !Lowresponsibility)) {
-                return res.status(500).json({ message: "Please fill all the fields" });
+                return res.status(403).json({ message: "Please fill all the fields" });
             }
     
             if (role === "Agent") {

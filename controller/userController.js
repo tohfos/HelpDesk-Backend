@@ -10,135 +10,136 @@ const Queue = require("../queue");
 const queueModel = require('../models/queueModel')
 const nodemailer = require('nodemailer');
 const { EventEmitter } = require('events');// modification
+const notificationsModel = require("../models/notificationsModel");
 const userEvents = new EventEmitter();// modification
 
-userEvents.on('ticketSolved', (userId) => {
-  Notification.requestPermission.then(perm =>  {
-    if(perm=== "granted"){
-      const notification =new Notification("ticket is solved" , {
-      body: `ticket is solved for user ${userId}`,
-      //icon: "../logo.svg",
-      tag:"ticket solved"
-          });
-    }
-  })
-})
+// userEvents.on('ticketSolved', (userId) => {
+//   Notification.requestPermission.then(perm =>  {
+//     if(perm=== "granted"){
+//       const notification =new Notification("ticket is solved" , {
+//       body: `ticket is solved for user ${userId}`,
+//       //icon: "../logo.svg",
+//       tag:"ticket solved"
+//           });
+//     }
+//   })
+// })
 
 
 
 
-userEvents.on('ticketCreated', (userId) => {
-  Notification.requestPermission.then(perm =>  {
-    if(perm=== "granted"){
-      const notification =new Notification("ticket is created" , {
-      body: `ticket is Created for user ${userId}`,
-      //icon: "../logo.svg",
-      tag:"ticket created"
-          });
-    }
-  })
-})
+// userEvents.on('ticketCreated', (userId) => {
+//   Notification.requestPermission.then(perm =>  {
+//     if(perm=== "granted"){
+//       const notification =new Notification("ticket is created" , {
+//       body: `ticket is Created for user ${userId}`,
+//       //icon: "../logo.svg",
+//       tag:"ticket created"
+//           });
+//     }
+//   })
+// })
 const userController = {
-  
-  createTicket: async (req,res)=>{
 
-    try{
-        const category=req.body.ticketCategory
+  createTicket: async (req, res) => {
 
-        // const Agent_id= await assignAgent(category);
-        
-        const ticket = new ticketModel({
+    try {
+      const category = req.body.ticketCategory
+
+      // const Agent_id= await assignAgent(category);
+
+      const ticket = new ticketModel({
         createdBy: req.userId,
         // assignedTo:Agent_id,
         ticketCategory: category,
-        priority:req.body.priority,
-        status:"Open",
-        title:req.body.title,
-        description:req.body.description
+        priority: req.body.priority,
+        status: "Open",
+        title: req.body.title,
+        description: req.body.description
       });
 
-      if (category != "others"){
+      if (category != "Other") {
         ticket.SubCategory = req.body.SubCategory;
-      }else{
-        
-        const agents = await usersModel.find({ Role: "Agent" })
-        const randomAgent = agents[ Math.floor(Math.random() * 3)];
+      } else {
 
-        console.log("Agents:" ,agents)
+        const agents = await usersModel.find({ Role: "Agent" })
+        const randomAgent = agents[Math.floor(Math.random() * 3)];
+
+        console.log("Agents:", agents)
         ticket.assignedTo = randomAgent._id;
-        
-        const chat = new chatsModel({"ticketId" : ticket, "userId" : req.userId , "agentId" : randomAgent._id })
+
+        const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": randomAgent._id })
         const newChat = await chat.save();
 
         ticket.hasChat = true
-        const newticket= await ticket.save();
+        const newticket = await ticket.save();
 
         console.log(newChat);
-        sendEmail(`Ticket created ${newticket.title}` ,`Ticket Created And Their is Chat Opend For You ` ,req.email);
-        return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat});
+        sendEmail(`Ticket created ${newticket.title}`, `Ticket Created And Their is Chat Opend For You `, req.email);
+        return res.status(201).json({ "ticket": newticket, "hasChat": newticket.hasChat, message: 'Ticket has been created' });
       }
 
-      const newticket= await ticket.save();
-      
+      const newticket = await ticket.save();
+
       await addtoQ(newticket);
       await assigneAgent();
-      
-      sendEmail(`Ticket created ${newticket.title}` ,`Ticket created ` ,req.email);
 
-      return res.status(201).json({"ticket":newticket , "hasChat" : newticket.hasChat});
+      sendEmail(`Ticket created ${newticket.title}`, `Ticket created `, req.email);
+
+      return res.status(201).json({ "ticket": newticket, "hasChat": newticket.hasChat });
 
 
     }
-      catch(e){
-          return res.status(500).json({ message: e.message });
-      }
+    catch (e) {
+      return res.status(500).json({ message: e.message });
+    }
   },
 
 
-    rateTicket: async(req,res)=>{
-      try {
-        const ticket = await ticketModel.findById(req.params.id);
-        if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
-
-        if(ticket.createdBy != req.userId){
-          return res.status(403).json({ message: "Not Your Ticket" });
-        }
-
-        if(ticket.status != "Resolved"){
-          return res.status(500).json({ message: "Ticket is Not Resolved" });
-        }
-        if(ticket.rating != null){
-          return res.status(500).json({ message: "Ticket is already Rated" });
-        }
-
-        const update = {rating:req.body.rating};
-        const ticketupdate = await ticketModel.findByIdAndUpdate(
-          req.params.id,
-          update,
-          { new: true }
-        );
-        
-        sendEmail("Ticket rate",`You Have Rated Your Ticket ${ticket.title}` , req.email )
-        return res.status(200).json({message: "ticket rated successfully"});
-        
-      } catch (error) {
-        return res.status(500).json({ message: error.message });
-      }
-    },
-    OpenChat:async(req,res)=>{
+  rateTicket: async (req, res) => {
+    try {
       const ticket = await ticketModel.findById(req.params.id);
-      if(!ticket){return res.status(404).json({message:"ticket Not Found"})}
-      if(ticket.status != "Resolved"){
+      if (!ticket) { return res.status(404).json({ message: "ticket Not Found" }) }
+
+      if (ticket.createdBy != req.userId) {
+        return res.status(403).json({ message: "Not Your Ticket" });
+      }
+
+      if (ticket.status != "Resolved") {
         return res.status(500).json({ message: "Ticket is Not Resolved" });
       }
-      const chat = new chatsModel({"ticketId" : ticket , "userId" : req.userId , "agentId" : ticket.assignedTo })
-      const newChat = await chat.save();
-  
-      ticket.hasChat = true
-      await ticket.save()
-      sendEmail(`Chat is Opend For Ticket ${ticket.title}`,`check your message tab For the chat` , req.email )
-      return res.status(200).json({"chat":newChat})
-    },
+      if (ticket.rating != null) {
+        return res.status(500).json({ message: "Ticket is already Rated" });
+      }
+
+      const update = { rating: req.body.rating };
+      const ticketupdate = await ticketModel.findByIdAndUpdate(
+        req.params.id,
+        update,
+        { new: true }
+      );
+
+      sendEmail("Ticket rate", `You Have Rated Your Ticket ${ticket.title}`, req.email)
+      return res.status(200).json({ message: "ticket rated successfully" });
+
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+  OpenChat: async (req, res) => {
+    const ticket = await ticketModel.findById(req.params.id);
+    if (!ticket) { return res.status(404).json({ message: "ticket Not Found" }) }
+    if (ticket.status != "Resolved") {
+      return res.status(500).json({ message: "Ticket is Not Resolved" });
+    }
+    const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": ticket.assignedTo })
+    const newChat = await chat.save();
+
+    ticket.hasChat = true
+    await ticket.save()
+    sendEmail(`Chat is Opend For Ticket ${ticket.title}`, `check your message tab For the chat`, req.email)
+    return res.status(200).json({ "chat": newChat })
+  },
 
   setPassword: async (req, res) => {
     try {
@@ -195,6 +196,18 @@ const userController = {
       return res.status(500).json({ message: error.message });
     }
   },
+  getnotifcations: async (req, res) => {
+    try {
+      const notifcations = await notificationsModel.find({ userid: req.userId });
+      return res.status(200).json({ message: notifcations });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+
+    }
+
+
+
+  },
   updateProfile: async (req, res) => {
     try {
       const user = await usersModel.findById(req.userId);
@@ -204,14 +217,14 @@ const userController = {
       if (
         !req.body.firstName ||
         !req.body.lastName ||
-        !req.body.email ||
+        //  !req.body.email ||
         !req.body.phone
       ) {
         return res.status(400).json({ message: "Please fill all the fields" });
       }
       user.profile.firstName = req.body.firstName;
       user.profile.lastName = req.body.lastName;
-      user.profile.email = req.body.email;
+      //user.profile.email = req.body.email;
       user.profile.phone = req.body.phone;
       const updatedUser = await user.save();
       return res.status(200).json(updatedUser.profile);
@@ -222,10 +235,25 @@ const userController = {
 
   getFAQ: async (req, res) => {
     try {
-      const FAQ = await FaqModel.find();
+      const FAQ = await KnowledgeBaseModel.find();
       return res.status(200).json(FAQ);
     } catch (error) {
       return res.status(500).json({ message: error.message });
+    }
+  },
+
+  postQuestion: async (req, res) => {
+    try {
+      const { Category, SubCategory, Question } = req.body;
+      const question = new KnowledgeBaseModel({
+        Question: Question,
+        Category: Category,
+        SubCategory: SubCategory,
+      })
+      const newQuestion = await question.save();
+      return res.status(200).json(newQuestion);
+    } catch (error) {
+      return res.status(500).json({ message: error.message })
     }
   },
 
@@ -234,12 +262,9 @@ const userController = {
       const knowledge = await KnowledgeBaseModel.find({
         Category: req.params.Category,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
 
-      return res.status(200).json(filteredKnowledge);
+
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -250,11 +275,7 @@ const userController = {
         Category: req.params.Category,
         SubCategory: req.params.SubCategory,
       });
-      const filteredKnowledge = knowledge.map((entry) => ({
-        Question: entry.Question,
-        Answer: entry.Answer,
-      }));
-      return res.status(200).json(filteredKnowledge);
+      return res.status(200).json(knowledge);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -269,6 +290,16 @@ const userController = {
         Description: entry.Description,
       }));
       return res.status(200).json(filteredKnowledge);
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  },
+
+  GetAllChats: async (req, res) => {
+    try {
+      const chats = await chatsModel.find({ userId: req.userId });
+      const tickets = await ticketModel.find({ _id: chats.ticketId });
+      return res.status(200).json(chats);
     } catch (error) {
       return res.status(500).json({ message: error.message });
     }
@@ -433,6 +464,10 @@ const addtoQ = async (ticket) => {
       // Handle any other cases here
       break;
   }
+
+
+
+
 };
 
-module.exports = {userController,userEvents};
+module.exports = { userController, userEvents };
