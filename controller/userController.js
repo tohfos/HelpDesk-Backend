@@ -133,6 +133,12 @@ const userController = {
     if (ticket.status != "Resolved") {
       return res.status(500).json({ message: "Ticket is Not Resolved" });
     }
+    if(ticket.hasChat === true){
+      console.log("in ot not")
+      const chat = await chatsModel.findOne({ ticketId: req.params.id })
+      return res.status(200).json({ "chat": chat })
+    }
+    
     const chat = new chatsModel({ "ticketId": ticket, "userId": req.userId, "agentId": ticket.assignedTo, "title": ticket.title })
     const newChat = await chat.save();
 
