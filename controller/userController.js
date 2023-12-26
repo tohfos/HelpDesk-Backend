@@ -199,8 +199,14 @@ const userController = {
   },
   getnotifcations: async (req, res) => {
     try {
-      const notifcations = await notificationsModel.find({ userid: req.userId });
-      return res.status(200).json({ message: notifcations });
+      const user = await usersModel.findById(req.userId);
+      if (!user) {
+        return res.status(404).json({ message: "No user found" });
+      }
+      console.log(user)
+      const notifcations = await notificationsModel.find({userid : req.userId});
+      console.log(notifcations)
+      return res.status(200).json(notifcations);
     } catch (error) {
       return res.status(500).json({ message: error.message });
 
